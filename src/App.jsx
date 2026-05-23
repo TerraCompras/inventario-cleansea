@@ -4,9 +4,9 @@ import { supabase } from "./lib/supabase";
 const PORTAL_URL = "https://clean-sea-portal.vercel.app";
 
 const ESTADOS_COLOR = {
-  "Disponible":        { bg: "#D1FAE5", color: "#065F46", border: "#A7F3D0" },
-  "En uso":            { bg: "#DBEAFE", color: "#1E40AF", border: "#BFDBFE" },
-  "Fuera de servicio": { bg: "#FEE2E2", color: "#991B1B", border: "#FECACA" },
+  "Disponible":          { bg: "#D1FAE5", color: "#065F46", border: "#A7F3D0" },
+  "En uso":              { bg: "#DBEAFE", color: "#1E40AF", border: "#BFDBFE" },
+  "Fuera de servicio":   { bg: "#FEE2E2", color: "#991B1B", border: "#FECACA" },
   "Falta mantenimiento": { bg: "#FEF3C7", color: "#92400E", border: "#FDE68A" },
 };
 
@@ -19,6 +19,8 @@ const CATEGORIAS_COLOR = {
   "Mangueras":      "#C05621",
   "Otros":          "#4B5563",
 };
+
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
@@ -60,11 +62,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 
 .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
 @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
-
-.kpi {
-  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
-  border-radius: 12px; padding: 16px 20px;
-}
+.kpi { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 16px 20px; }
 .kpi-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: rgba(255,255,255,.45); text-transform: uppercase; margin-bottom: 8px; }
 .kpi-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: #fff; }
 .kpi-sub { font-size: 10px; color: rgba(255,255,255,.35); margin-top: 4px; }
@@ -73,13 +71,16 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .kpi.yellow .kpi-value { color: #FCD34D; }
 .kpi.blue  .kpi-value { color: #93C5FD; }
 
-.content { padding: 32px 40px 60px; }
-.table-outer { overflow-x: auto; width: 100%; }
+.content-top { padding: 32px 40px 20px; }
+.section-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2.5px; color: var(--muted);
+  text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
 .toolbar {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-  padding: 16px 20px; margin-bottom: 20px;
-  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  padding: 16px 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
 }
 .search-box {
   flex: 1; min-width: 220px; padding: 8px 14px; border: 1px solid var(--border);
@@ -96,8 +97,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .toolbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .count-badge {
   font-family: var(--mono); font-size: 10px; color: var(--muted);
-  background: #F0F4F8; border: 1px solid var(--border);
-  padding: 4px 10px; border-radius: 6px;
+  background: #F0F4F8; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px;
 }
 .clear-btn {
   font-family: var(--sans); font-size: 11px; font-weight: 600;
@@ -106,8 +106,12 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 }
 .clear-btn:hover { background: #F0F4F8; }
 
-.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-table { min-width: 1200px; width: 100%; border-collapse: collapse; }
+.table-outer {
+  overflow-x: auto; width: 100%;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+table { min-width: 1300px; width: 100%; border-collapse: collapse; }
 thead { background: #F8FAFC; }
 th {
   font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
@@ -134,11 +138,11 @@ tr:hover td { background: #F8FAFC; }
 
 .pagination {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; border-top: 1px solid var(--border);
-  background: #F8FAFC;
+  padding: 14px 40px; border-top: 1px solid var(--border); background: #F8FAFC;
+  margin-bottom: 40px;
 }
 .page-info { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-.page-btns { display: flex; gap: 6px; }
+.page-btns { display: flex; gap: 6px; align-items: center; }
 .page-btn {
   font-family: var(--sans); font-size: 11px; font-weight: 600;
   padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all .15s;
@@ -148,30 +152,21 @@ tr:hover td { background: #F8FAFC; }
 .page-btn:disabled { opacity: .4; cursor: not-allowed; }
 .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
-.section-label {
-  font-family: var(--mono); font-size: 9px; letter-spacing: 2.5px; color: var(--muted);
-  text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
-}
-.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
 .loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
 .loading-text { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: 2px; text-transform: uppercase; }
-
 .empty { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 13px; }
 `;
 
-const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
-
 export default function App() {
-  const [items, setItems]       = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [items, setItems]         = useState([]);
+  const [loading, setLoading]     = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [search, setSearch]     = useState("");
-  const [filtCat, setFiltCat]   = useState("");
-  const [filtBase, setFiltBase] = useState("");
-  const [filtEst, setFiltEst]   = useState("");
-  const [page, setPage]         = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [search, setSearch]       = useState("");
+  const [filtCat, setFiltCat]     = useState("");
+  const [filtBase, setFiltBase]   = useState("");
+  const [filtEst, setFiltEst]     = useState("");
+  const [page, setPage]           = useState(1);
+  const [pageSize, setPageSize]   = useState(50);
 
   const loadItems = async () => {
     setLoading(true);
@@ -190,11 +185,9 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    loadItems();
-  }, []);
+  useEffect(() => { loadItems(); }, []);
+  useEffect(() => { setPage(1); }, [search, filtCat, filtBase, filtEst, pageSize]);
 
-  // Filtrado
   const filtered = items.filter(it => {
     const q = search.toLowerCase();
     const matchSearch = !q || [it.modelo, it.fabricante, it.comentarios, it.terminal]
@@ -205,25 +198,38 @@ export default function App() {
     return matchSearch && matchCat && matchBase && matchEst;
   });
 
-  // KPIs sobre items totales
   const total       = items.length;
   const disponibles = items.filter(i => i.estado === "Disponible").length;
   const enUso       = items.filter(i => i.estado === "En uso").length;
   const fueraServ   = items.filter(i => i.estado === "Fuera de servicio").length;
   const faltaMant   = items.filter(i => i.estado === "Falta mantenimiento").length;
 
-  // Opciones únicas para filtros
-  const categorias = [...new Set(items.map(i => i.categoria).filter(Boolean))].sort();
-  const bases      = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
-  const estados    = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
+  const categorias  = [...new Set(items.map(i => i.categoria).filter(Boolean))].sort();
+  const bases       = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
+  const estados     = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
 
-  // Paginación
-  const totalPages = Math.ceil(filtered.length / pageSize);
-  const pageItems  = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages  = Math.ceil(filtered.length / pageSize);
+  const pageItems   = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const clearFilters = () => { setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1); };
+  const clearFilters = () => {
+    setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1);
+  };
 
-  useEffect(() => { setPage(1); }, [search, filtCat, filtBase, filtEst, pageSize]);
+  const renderPagination = () => {
+    const pages = [];
+    const left  = Math.max(2, page - 2);
+    const right = Math.min(totalPages - 1, page + 2);
+    pages.push(1);
+    if (left > 2) pages.push("dots-l");
+    for (let n = left; n <= right; n++) pages.push(n);
+    if (right < totalPages - 1) pages.push("dots-r");
+    if (totalPages > 1) pages.push(totalPages);
+    return pages.map(p =>
+      typeof p === "string"
+        ? <span key={p} style={{ padding: "5px 4px", fontSize: 11, color: "var(--muted)" }}>…</span>
+        : <button key={p} className={"page-btn" + (page === p ? " active" : "")} onClick={() => setPage(p)}>{p}</button>
+    );
+  };
 
   if (loading) return (
     <div className="loading">
@@ -272,7 +278,7 @@ export default function App() {
             <div className="kpi green">
               <div className="kpi-label">Disponibles</div>
               <div className="kpi-value">{disponibles}</div>
-              <div className="kpi-sub">{total ? Math.round(disponibles/total*100) : 0}% del total</div>
+              <div className="kpi-sub">{total ? Math.round(disponibles / total * 100) : 0}% del total</div>
             </div>
             <div className="kpi blue">
               <div className="kpi-label">En uso</div>
@@ -293,9 +299,8 @@ export default function App() {
         </div>
       </div>
 
-      <div className="content">
+      <div className="content-top">
         <div className="section-label">Inventario completo</div>
-
         <div className="toolbar">
           <input
             className="search-box"
@@ -313,107 +318,91 @@ export default function App() {
           </select>
           <select className="filter-select" value={filtEst} onChange={e => setFiltEst(e.target.value)}>
             <option value="">Todos los estados</option>
-            {estados.map(e => <option key={e} value={e}>{e}</option>)}
+            {estados.map(est => <option key={est} value={est}>{est}</option>)}
           </select>
           <div className="toolbar-right">
             <span className="count-badge">{filtered.length} resultados</span>
-            <select className="filter-select" style={{ minWidth: 110 }} value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-              {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} por pág.</option>)}
+            <select className="filter-select" style={{ minWidth: 120 }} value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
+              {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} por página</option>)}
             </select>
             {(search || filtCat || filtBase || filtEst) &&
               <button className="clear-btn" onClick={clearFilters}>Limpiar filtros</button>
             }
           </div>
         </div>
-
-        <div className="table-outer">
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Categoría</th>
-                <th>Base</th>
-                <th>Fabricante</th>
-                <th>Modelo / Descripción</th>
-                <th>Cant.</th>
-                <th>Metros</th>
-                <th>Condición</th>
-                <th>Estado</th>
-                <th>Terminal</th>
-                <th>Comentarios</th>
-                <th>Foto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageItems.length === 0 && (
-                <tr><td colSpan={12} className="empty">No se encontraron resultados</td></tr>
-              )}
-              {pageItems.map(it => {
-                const estCol = ESTADOS_COLOR[it.estado] || { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" };
-                const catCol = CATEGORIAS_COLOR[it.categoria] || "#4B5563";
-                return (
-                  <tr key={it.id}>
-                    <td className="cell-num">{it.item_numero ?? "—"}</td>
-                    <td>
-                      <span className="badge-cat" style={{ background: `${catCol}18`, color: catCol, border: `1px solid ${catCol}30` }}>
-                        {it.categoria || "—"}
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: 500 }}>{it.ubicacion || "—"}</td>
-                    <td style={{ color: "var(--muted)" }}>{it.fabricante || "—"}</td>
-                    <td className="cell-modelo">{it.modelo || "—"}</td>
-                    <td className="cell-num" style={{ textAlign: "center" }}>{it.cantidad ?? "—"}</td>
-                    <td className="cell-num" style={{ textAlign: "center" }}>{it.metros != null ? `${it.metros}m` : "—"}</td>
-                    <td style={{ color: "var(--muted)", fontSize: 11 }}>{it.condicion || "—"}</td>
-                    <td>
-                      <span className="badge-estado" style={{ background: estCol.bg, color: estCol.color, border: `1px solid ${estCol.border}` }}>
-                        {it.estado || "—"}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: 11 }}>{it.terminal || "—"}</td>
-                    <td className="cell-comentarios" title={it.comentarios}>{it.comentarios || "—"}</td>
-                    <td>
-                      {it.foto_url
-                        ? <a className="foto-link" href={it.foto_url} target="_blank" rel="noreferrer">Ver foto →</a>
-                        : <span style={{ color: "var(--muted)", fontSize: 11 }}>—</span>
-                      }
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          {totalPages > 1 && (
-            <div className="pagination">
-              <span className="page-info">
-                Mostrando {(page-1)*pageSize + 1}–{Math.min(page*pageSize, filtered.length)} de {filtered.length}
-              </span>
-              <div className="page-btns">
-                <button className="page-btn" onClick={() => setPage(p => p-1)} disabled={page === 1}>← Anterior</button>
-                {(() => {
-                  const pages = [];
-                  const left = Math.max(2, page - 2);
-                  const right = Math.min(totalPages - 1, page + 2);
-                  pages.push(1);
-                  if (left > 2) pages.push("dots-l");
-                  for (let n = left; n <= right; n++) pages.push(n);
-                  if (right < totalPages - 1) pages.push("dots-r");
-                  if (totalPages > 1) pages.push(totalPages);
-                  return pages.map(p =>
-                    typeof p === "string"
-                      ? <span key={p} style={{ padding: "5px 4px", fontSize: 11, color: "var(--muted)" }}>…</span>
-                      : <button key={p} className={"page-btn" + (page === p ? " active" : "")} onClick={() => setPage(p)}>{p}</button>
-                  );
-                })()}
-                <button className="page-btn" onClick={() => setPage(p => p+1)} disabled={page === totalPages}>Siguiente →</button>
-              </div>
-            </div>
-          )}
-        </div>
-        </div>
       </div>
+
+      <div className="table-outer">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Categoría</th>
+              <th>Base</th>
+              <th>Fabricante</th>
+              <th>Modelo / Descripción</th>
+              <th>Cant.</th>
+              <th>Metros</th>
+              <th>Condición</th>
+              <th>Estado</th>
+              <th>Terminal</th>
+              <th>Comentarios</th>
+              <th>Foto</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pageItems.length === 0 && (
+              <tr><td colSpan={12} className="empty">No se encontraron resultados</td></tr>
+            )}
+            {pageItems.map(it => {
+              const estCol = ESTADOS_COLOR[it.estado] || { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" };
+              const catCol = CATEGORIAS_COLOR[it.categoria] || "#4B5563";
+              return (
+                <tr key={it.id}>
+                  <td className="cell-num">{it.item_numero ?? "—"}</td>
+                  <td>
+                    <span className="badge-cat" style={{ background: `${catCol}18`, color: catCol, border: `1px solid ${catCol}30` }}>
+                      {it.categoria || "—"}
+                    </span>
+                  </td>
+                  <td style={{ fontWeight: 500 }}>{it.ubicacion || "—"}</td>
+                  <td style={{ color: "var(--muted)" }}>{it.fabricante || "—"}</td>
+                  <td className="cell-modelo">{it.modelo || "—"}</td>
+                  <td className="cell-num" style={{ textAlign: "center" }}>{it.cantidad ?? "—"}</td>
+                  <td className="cell-num" style={{ textAlign: "center" }}>{it.metros != null ? `${it.metros}m` : "—"}</td>
+                  <td style={{ color: "var(--muted)", fontSize: 11 }}>{it.condicion || "—"}</td>
+                  <td>
+                    <span className="badge-estado" style={{ background: estCol.bg, color: estCol.color, border: `1px solid ${estCol.border}` }}>
+                      {it.estado || "—"}
+                    </span>
+                  </td>
+                  <td style={{ fontSize: 11 }}>{it.terminal || "—"}</td>
+                  <td className="cell-comentarios" title={it.comentarios}>{it.comentarios || "—"}</td>
+                  <td>
+                    {it.foto_url
+                      ? <a className="foto-link" href={it.foto_url} target="_blank" rel="noreferrer">Ver foto →</a>
+                      : <span style={{ color: "var(--muted)", fontSize: 11 }}>—</span>
+                    }
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <span className="page-info">
+            Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} de {filtered.length}
+          </span>
+          <div className="page-btns">
+            <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>← Anterior</button>
+            {renderPagination()}
+            <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>Siguiente →</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
