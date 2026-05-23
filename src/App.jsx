@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "./lib/supabase";
 
 const PORTAL_URL = "https://clean-sea-portal.vercel.app";
@@ -106,11 +106,9 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 }
 .clear-btn:hover { background: #F0F4F8; }
 
-.table-outer {
-  overflow-x: auto; width: 100%;
-  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  background: var(--surface);
-}
+.scroll-top-bar { overflow-x: auto; width: 100%; background: var(--surface); border-top: 1px solid var(--border); }
+.scroll-top-bar-inner { height: 12px; }
+.table-outer { overflow-x: auto; width: 100%; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 table { min-width: 1300px; width: 100%; border-collapse: collapse; }
 thead { background: #F8FAFC; }
 th {
@@ -167,6 +165,37 @@ export default function App() {
   const [filtEst, setFiltEst]     = useState("");
   const [page, setPage]           = useState(1);
   const [pageSize, setPageSize]   = useState(50);
+
+  const scrollTopRef    = useRef(null);
+  const scrollBottomRef = useRef(null);
+  const syncingRef      = useRef(false);
+
+  // Sincronizar scroll superior e inferior
+  useEffect(() => {
+    const top = scrollTopRef.current;
+    const bot = scrollBottomRef.current;
+    if (!top || !bot) return;
+
+    const onTopScroll = () => {
+      if (syncingRef.current) return;
+      syncingRef.current = true;
+      bot.scrollLeft = top.scrollLeft;
+      syncingRef.current = false;
+    };
+    const onBotScroll = () => {
+      if (syncingRef.current) return;
+      syncingRef.current = true;
+      top.scrollLeft = bot.scrollLeft;
+      syncingRef.current = false;
+    };
+
+    top.addEventListener("scroll", onTopScroll);
+    bot.addEventListener("scroll", onBotScroll);
+    return () => {
+      top.removeEventListener("scroll", onTopScroll);
+      bot.removeEventListener("scroll", onBotScroll);
+    };
+  }, []);
 
   const loadItems = async () => {
     setLoading(true);
@@ -332,7 +361,12 @@ export default function App() {
         </div>
       </div>
 
-      <div className="table-outer">
+      {/* Barra de scroll superior sincronizada */}
+      <div className="scroll-top-bar" ref={scrollTopRef}>
+        <div className="scroll-top-bar-inner" style={{ minWidth: 1300 }} />
+      </div>
+
+      <div className="table-outer" ref={scrollBottomRef}>
         <table>
           <thead>
             <tr>
