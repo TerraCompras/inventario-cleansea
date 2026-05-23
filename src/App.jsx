@@ -53,7 +53,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
   padding: 40px 40px 36px; position: relative; overflow: hidden;
 }
 .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; border-radius: 50%; background: rgba(26,122,110,.2); pointer-events: none; }
-.hero-content { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; }
+.hero-content { position: relative; z-index: 1; }
 .hero-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,.4); text-transform: uppercase; margin-bottom: 8px; }
 .hero-title { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 24px; }
 .hero-title span { color: #6EE7DE; }
@@ -73,7 +73,8 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .kpi.yellow .kpi-value { color: #FCD34D; }
 .kpi.blue  .kpi-value { color: #93C5FD; }
 
-.content { max-width: 1400px; margin: 0 auto; padding: 32px 40px 60px; }
+.content { padding: 32px 40px 60px; }
+.table-outer { overflow-x: auto; width: 100%; }
 
 .toolbar {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
@@ -106,7 +107,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .clear-btn:hover { background: #F0F4F8; }
 
 .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-table { width: 100%; border-collapse: collapse; }
+table { min-width: 1200px; width: 100%; border-collapse: collapse; }
 thead { background: #F8FAFC; }
 th {
   font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
@@ -159,7 +160,7 @@ tr:hover td { background: #F8FAFC; }
 .empty { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 13px; }
 `;
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
 
 export default function App() {
   const [items, setItems]       = useState([]);
@@ -170,6 +171,7 @@ export default function App() {
   const [filtBase, setFiltBase] = useState("");
   const [filtEst, setFiltEst]   = useState("");
   const [page, setPage]         = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   const loadItems = async () => {
     setLoading(true);
@@ -216,12 +218,12 @@ export default function App() {
   const estados    = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
 
   // Paginación
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const pageItems  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const pageItems  = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const clearFilters = () => { setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1); };
 
-  useEffect(() => { setPage(1); }, [search, filtCat, filtBase, filtEst]);
+  useEffect(() => { setPage(1); }, [search, filtCat, filtBase, filtEst, pageSize]);
 
   if (loading) return (
     <div className="loading">
@@ -315,12 +317,16 @@ export default function App() {
           </select>
           <div className="toolbar-right">
             <span className="count-badge">{filtered.length} resultados</span>
+            <select className="filter-select" style={{ minWidth: 110 }} value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
+              {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} por pág.</option>)}
+            </select>
             {(search || filtCat || filtBase || filtEst) &&
               <button className="clear-btn" onClick={clearFilters}>Limpiar filtros</button>
             }
           </div>
         </div>
 
+        <div className="table-outer">
         <div className="table-wrap">
           <table>
             <thead>
@@ -382,7 +388,7 @@ export default function App() {
           {totalPages > 1 && (
             <div className="pagination">
               <span className="page-info">
-                Mostrando {(page-1)*PAGE_SIZE + 1}–{Math.min(page*PAGE_SIZE, filtered.length)} de {filtered.length}
+                Mostrando {(page-1)*pageSize + 1}–{Math.min(page*pageSize, filtered.length)} de {filtered.length}
               </span>
               <div className="page-btns">
                 <button className="page-btn" onClick={() => setPage(p => p-1)} disabled={page === 1}>← Anterior</button>
@@ -405,6 +411,7 @@ export default function App() {
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </>
