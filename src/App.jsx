@@ -39,6 +39,7 @@ const ITEM_VACIO = {
   familia: "", subtipo: "", capacidad: "", combustible: "", obs: "",
   numero_serie: "", cantidad: "", metros: "", condicion: "Usado",
   estado: "Disponible", terminal: "", comentarios: "", foto_url: "",
+  fecha_ultimo_mantenimiento: "", fecha_proximo_mantenimiento: "", notas_mantenimiento: "",
 };
 
 const CSS = `
@@ -117,6 +118,11 @@ tr:hover td { background: #F8FAFC; }
 .cell-num { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 .btn-edit { font-family: var(--sans); font-size: 10px; font-weight: 600; color: var(--blue); background: none; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
 .btn-edit:hover { background: #EFF6FF; border-color: var(--blue); }
+.semaforo { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.semaforo-verde { background: #10B981; }
+.semaforo-amarillo { background: #F59E0B; }
+.semaforo-rojo { background: #EF4444; }
+.semaforo-gris { background: #9CA3AF; }
 
 .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 40px; border-top: 1px solid var(--border); background: #F8FAFC; margin-bottom: 40px; }
 .page-info { font-family: var(--mono); font-size: 10px; color: var(--muted); }
@@ -252,7 +258,10 @@ function ModalItem({ item, onClose, onSaved, usuario }) {
         estado:       form.estado       || null,
         terminal:     form.terminal     || null,
         comentarios:  form.comentarios  || null,
-        foto_url:     form.foto_url     || null,
+        foto_url:                    form.foto_url                    || null,
+        fecha_ultimo_mantenimiento:  form.fecha_ultimo_mantenimiento  || null,
+        fecha_proximo_mantenimiento: form.fecha_proximo_mantenimiento || null,
+        notas_mantenimiento:         form.notas_mantenimiento         || null,
       };
 
       if (esNuevo) {
@@ -266,7 +275,7 @@ function ModalItem({ item, onClose, onSaved, usuario }) {
       } else {
         // Detectar campos modificados para el log
         const cambios = [];
-        const camposAuditar = ["modelo","ubicacion","familia","subtipo","capacidad","combustible","estado","condicion","cantidad","metros","numero_serie","comentarios","obs","terminal","fabricante","categoria"];
+        const camposAuditar = ["modelo","ubicacion","familia","subtipo","capacidad","combustible","estado","condicion","cantidad","metros","numero_serie","comentarios","obs","terminal","fabricante","categoria","fecha_ultimo_mantenimiento","fecha_proximo_mantenimiento","notas_mantenimiento"];
         for (const campo of camposAuditar) {
           const ant = String(item[campo] ?? "");
           const nvo = String(form[campo] ?? "");
@@ -338,6 +347,17 @@ function ModalItem({ item, onClose, onSaved, usuario }) {
           <div className="form-group full">
             <label className="form-label">URL Foto</label>
             <input className="form-input" value={form.foto_url || ""} onChange={e => set("foto_url", e.target.value)} />
+          </div>
+          <div style={{ gridColumn: "1 / -1", borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 4 }}>
+            <div style={{ fontFamily: "var(--mono)", fontSize: 9, letterSpacing: 1, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>Mantenimiento</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              {fg("Último mantenimiento", "fecha_ultimo_mantenimiento", "date")}
+              {fg("Próximo mantenimiento", "fecha_proximo_mantenimiento", "date")}
+            </div>
+          </div>
+          <div className="form-group full">
+            <label className="form-label">Notas de mantenimiento</label>
+            <input className="form-input" value={form.notas_mantenimiento || ""} onChange={e => set("notas_mantenimiento", e.target.value)} placeholder="Ej: Revisión hidráulica, cambio de sellos..." />
           </div>
         </div>
         <div className="modal-footer">
@@ -434,6 +454,7 @@ function TabInventario({ items, onReload, usuario }) {
           <thead>
             <tr>
               <th></th>
+              <th>Mant.</th>
               <th>Item</th>
               <th>Familia</th>
               <th>Subtipo</th>
@@ -455,7 +476,7 @@ function TabInventario({ items, onReload, usuario }) {
           </thead>
           <tbody>
             {pageItems.length === 0 && (
-              <tr><td colSpan={18} className="empty">No se encontraron resultados</td></tr>
+              <tr><td colSpan={19} className="empty">No se encontraron resultados</td></tr>
             )}
             {pageItems.map(it => {
               const estCol = ESTADOS_COLOR[it.estado] || { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" };
@@ -463,6 +484,14 @@ function TabInventario({ items, onReload, usuario }) {
               return (
                 <tr key={it.id}>
                   <td><button className="btn-edit" onClick={() => setModalItem(it)}>✏️</button></td>
+                  <td style={{ textAlign: "center" }}>
+                    {it.fecha_proximo_mantenimiento ? (() => {
+                      const dias = Math.ceil((new Date(it.fecha_proximo_mantenimiento) - new Date()) / 86400000);
+                      if (dias < 0)  return <span className="semaforo semaforo-rojo" title="Mantenimiento vencido" />;
+                      if (dias <= 30) return <span className="semaforo semaforo-amarillo" title={`Vence en ${dias} días`} />;
+                      return <span className="semaforo semaforo-verde" title={`Vence en ${dias} días`} />;
+                    })() : <span className="semaforo semaforo-gris" title="Sin fecha de mantenimiento" />}
+                  </td>
                   <td className="cell-num">{it.item_numero ?? "—"}</td>
                   <td><span className="badge-fam" style={{ background: `${famCol}18`, color: famCol, border: `1px solid ${famCol}30` }}>{it.familia || "—"}</span></td>
                   <td style={{ fontSize: 11, color: "var(--muted)" }}>{it.subtipo || "—"}</td>
@@ -777,6 +806,112 @@ function TabHistorial() {
   );
 }
 
+
+// ─── TAB MANTENIMIENTO ────────────────────────────────────────────────────────
+function TabMantenimiento({ items }) {
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+
+  const conMantenimiento = items.filter(i => i.fecha_proximo_mantenimiento);
+  const vencidos  = conMantenimiento.filter(i => {
+    const d = new Date(i.fecha_proximo_mantenimiento); d.setHours(0,0,0,0);
+    return d < hoy;
+  });
+  const proximos  = conMantenimiento.filter(i => {
+    const d = new Date(i.fecha_proximo_mantenimiento); d.setHours(0,0,0,0);
+    const dias = Math.ceil((d - hoy) / 86400000);
+    return dias >= 0 && dias <= 30;
+  });
+  const okItems   = conMantenimiento.filter(i => {
+    const d = new Date(i.fecha_proximo_mantenimiento); d.setHours(0,0,0,0);
+    return Math.ceil((d - hoy) / 86400000) > 30;
+  });
+  const sinFecha  = items.filter(i => !i.fecha_proximo_mantenimiento);
+
+  const diasRestantes = (fecha) => {
+    const d = new Date(fecha); d.setHours(0,0,0,0);
+    return Math.ceil((d - hoy) / 86400000);
+  };
+
+  const fmtFecha = (f) => f ? new Date(f).toLocaleDateString("es-AR", { day:"2-digit", month:"2-digit", year:"numeric" }) : "—";
+
+  const seccion = (titulo, lista, colorBadge, colorBg) => lista.length === 0 ? null : (
+    <div style={{ marginBottom: 32 }}>
+      <div className="section-label">{titulo} <span style={{ fontFamily:"var(--mono)", fontSize:9, background: colorBg, color: colorBadge, border:`1px solid ${colorBadge}40`, padding:"2px 8px", borderRadius:4 }}>{lista.length} ítems</span></div>
+      <div className="mov-table-wrap">
+        <table className="mov-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Familia</th>
+              <th>Modelo</th>
+              <th>Base</th>
+              <th>Próximo mant.</th>
+              <th>Último mant.</th>
+              <th>Días</th>
+              <th>Notas</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lista.map(it => {
+              const dias = it.fecha_proximo_mantenimiento ? diasRestantes(it.fecha_proximo_mantenimiento) : null;
+              const famCol = FAMILIA_COLOR[it.familia] || "#4B5563";
+              const estCol = ESTADOS_COLOR[it.estado] || { bg:"#F3F4F6", color:"#6B7280", border:"#E5E7EB" };
+              return (
+                <tr key={it.id}>
+                  <td className="cell-num">{it.item_numero ?? "—"}</td>
+                  <td><span className="badge-fam" style={{ background:`${famCol}18`, color:famCol, border:`1px solid ${famCol}30` }}>{it.familia || "—"}</span></td>
+                  <td style={{ fontWeight:500, maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.modelo || "—"}</td>
+                  <td>{it.ubicacion || "—"}</td>
+                  <td style={{ fontFamily:"var(--mono)", fontSize:11, color: dias !== null && dias < 0 ? "#EF4444" : dias !== null && dias <= 30 ? "#F59E0B" : "var(--text)" }}>{fmtFecha(it.fecha_proximo_mantenimiento)}</td>
+                  <td style={{ fontFamily:"var(--mono)", fontSize:11, color:"var(--muted)" }}>{fmtFecha(it.fecha_ultimo_mantenimiento)}</td>
+                  <td style={{ fontFamily:"var(--mono)", fontSize:11, fontWeight:700, color: dias !== null && dias < 0 ? "#EF4444" : dias !== null && dias <= 30 ? "#F59E0B" : "#10B981" }}>
+                    {dias !== null ? (dias < 0 ? `${Math.abs(dias)}d vencido` : `${dias}d`) : "—"}
+                  </td>
+                  <td style={{ fontSize:11, color:"var(--muted)", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.notas_mantenimiento || "—"}</td>
+                  <td><span className="badge-estado" style={{ background:estCol.bg, color:estCol.color, border:`1px solid ${estCol.border}` }}>{it.estado || "—"}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="hist-content">
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:32 }}>
+        <div style={{ background:"#FEE2E2", border:"1px solid #FECACA", borderRadius:12, padding:"16px 20px" }}>
+          <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#991B1B", textTransform:"uppercase", marginBottom:8 }}>Vencidos</div>
+          <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#EF4444" }}>{vencidos.length}</div>
+          <div style={{ fontSize:10, color:"#991B1B", marginTop:4 }}>requieren atención inmediata</div>
+        </div>
+        <div style={{ background:"#FEF3C7", border:"1px solid #FDE68A", borderRadius:12, padding:"16px 20px" }}>
+          <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#92400E", textTransform:"uppercase", marginBottom:8 }}>Próximos 30 días</div>
+          <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#F59E0B" }}>{proximos.length}</div>
+          <div style={{ fontSize:10, color:"#92400E", marginTop:4 }}>programar mantenimiento</div>
+        </div>
+        <div style={{ background:"#D1FAE5", border:"1px solid #A7F3D0", borderRadius:12, padding:"16px 20px" }}>
+          <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#065F46", textTransform:"uppercase", marginBottom:8 }}>Al día</div>
+          <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#10B981" }}>{okItems.length}</div>
+          <div style={{ fontSize:10, color:"#065F46", marginTop:4 }}>más de 30 días restantes</div>
+        </div>
+        <div style={{ background:"#F3F4F6", border:"1px solid #E5E7EB", borderRadius:12, padding:"16px 20px" }}>
+          <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#6B7280", textTransform:"uppercase", marginBottom:8 }}>Sin fecha</div>
+          <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#9CA3AF" }}>{sinFecha.length}</div>
+          <div style={{ fontSize:10, color:"#6B7280", marginTop:4 }}>sin planificación</div>
+        </div>
+      </div>
+
+      {seccion("🔴 Vencidos", vencidos, "#EF4444", "#FEE2E2")}
+      {seccion("🟡 Próximos 30 días", proximos, "#F59E0B", "#FEF3C7")}
+      {seccion("🟢 Al día", okItems, "#10B981", "#D1FAE5")}
+    </div>
+  );
+}
+
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
 export default function App() {
   const [items, setItems]         = useState([]);
@@ -852,6 +987,7 @@ export default function App() {
             <button className={"tab-btn"+(tab==="inventario"?" active":"")} onClick={()=>setTab("inventario")}>📦 Inventario</button>
             <button className={"tab-btn"+(tab==="movimientos"?" active":"")} onClick={()=>setTab("movimientos")}>🔄 Movimientos</button>
             <button className={"tab-btn"+(tab==="historial"?" active":"")} onClick={()=>setTab("historial")}>📋 Historial</button>
+            <button className={"tab-btn"+(tab==="mantenimiento"?" active":"")} onClick={()=>setTab("mantenimiento")}>🔧 Mantenimiento</button>
           </div>
         </div>
       </div>
@@ -859,6 +995,7 @@ export default function App() {
       {tab === "inventario"  && <TabInventario  items={items} onReload={loadItems} usuario={usuario} />}
       {tab === "movimientos" && <TabMovimientos items={items} onMovimientoCreado={loadItems} usuario={usuario} />}
       {tab === "historial"   && <TabHistorial />}
+      {tab === "mantenimiento" && <TabMantenimiento items={items} />}
     </>
   );
 }
