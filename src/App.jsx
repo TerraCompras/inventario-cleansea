@@ -372,10 +372,13 @@ function TabMovimientos({ items, onMovimientoCreado }) {
   const [errorMsg, setErrorMsg]       = useState("");
   const [errorLoad, setErrorLoad]     = useState("");
 
-  const [itemId, setItemId]           = useState("");
-  const [cantidadMov, setCantidadMov] = useState(1);
-  const [baseDestino, setBaseDestino] = useState("");
-  const [motivo, setMotivo]           = useState("");
+  const [filtCategoria, setFiltCategoria] = useState("");
+  const [filtModelo, setFiltModelo]       = useState("");
+  const [filtBaseOrigen, setFiltBaseOrigen] = useState("");
+  const [itemId, setItemId]               = useState("");
+  const [cantidadMov, setCantidadMov]     = useState(1);
+  const [baseDestino, setBaseDestino]     = useState("");
+  const [motivo, setMotivo]               = useState("");
 
   useEffect(() => { loadMovimientos(); }, []);
 
@@ -396,11 +399,34 @@ function TabMovimientos({ items, onMovimientoCreado }) {
     }
   };
 
+  // Cascada de filtros
+  const itemsMovibles = items.filter(i => i.estado === "Disponible" || i.estado === "En uso");
+  const categoriasCasc = [...new Set(itemsMovibles.map(i => i.categoria).filter(Boolean))].sort();
+  const modelosCasc = [...new Set(
+    itemsMovibles.filter(i => !filtCategoria || i.categoria === filtCategoria)
+      .map(i => i.modelo).filter(Boolean)
+  )].sort();
+  const basesCasc = [...new Set(
+    itemsMovibles
+      .filter(i => (!filtCategoria || i.categoria === filtCategoria) && (!filtModelo || i.modelo === filtModelo))
+      .map(i => i.ubicacion).filter(Boolean)
+  )].sort();
+  const itemsFiltrados = itemsMovibles.filter(i =>
+    (!filtCategoria || i.categoria === filtCategoria) &&
+    (!filtModelo || i.modelo === filtModelo) &&
+    (!filtBaseOrigen || i.ubicacion === filtBaseOrigen)
+  );
+
   const itemSeleccionado = items.find(i => i.id === itemId);
-  const bases = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
+  const basesDestino = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
   const maxCantidad = itemSeleccionado
     ? (itemSeleccionado.numero_serie ? 1 : (itemSeleccionado.cantidad || 1))
     : 1;
+
+  const resetFiltros = () => {
+    setFiltCategoria(""); setFiltModelo(""); setFiltBaseOrigen("");
+    setItemId(""); setCantidadMov(1); setBaseDestino(""); setErrorMsg(""); setSuccessMsg("");
+  };
 
   const handleSubmit = async () => {
     if (!itemId) { setErrorMsg("Seleccioná un ítem."); return; }
@@ -439,7 +465,7 @@ function TabMovimientos({ items, onMovimientoCreado }) {
       if (errMov) throw errMov;
 
       setSuccessMsg(`✓ Movimiento registrado: ${snapModelo} → ${baseDestino}`);
-      setItemId(""); setCantidadMov(1); setBaseDestino(""); setMotivo("");
+      resetFiltros(); setMotivo("");
       await loadMovimientos();
       onMovimientoCreado();
     } catch (e) {
@@ -462,15 +488,42 @@ function TabMovimientos({ items, onMovimientoCreado }) {
           {errorMsg   && <div className="form-error">{errorMsg}</div>}
 
           <div className="form-group">
-            <label className="form-label">Ítem a mover</label>
-            <select className="form-input" value={itemId} onChange={e => { setItemId(e.target.value); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }}>
-              <option value="">Seleccioná un ítem...</option>
-              {items.filter(i => i.estado === "Disponible" || i.estado === "En uso").map(i => (
+            <label className="form-label">1. Categoría</label>
+            <select className="form-input" value={filtCategoria} onChange={e => { setFiltCategoria(e.target.value); setFiltModelo(""); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }}>
+              <option value="">Todas las categorías...</option>
+              {categoriasCasc.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">2. Modelo</label>
+            <select className="form-input" value={filtModelo} onChange={e => { setFiltModelo(e.target.value); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtCategoria}>
+              <option value="">{filtCategoria ? "Seleccioná un modelo..." : "Primero elegí categoría"}</option>
+              {modelosCasc.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">3. Base de origen</label>
+            <select className="form-input" value={filtBaseOrigen} onChange={e => { setFiltBaseOrigen(e.target.value); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtModelo}>
+              <option value="">{filtModelo ? "Seleccioná base de origen..." : "Primero elegí modelo"}</option>
+              {basesCasc.map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">4. Ítem específico</label>
+            <select className="form-input" value={itemId} onChange={e => { setItemId(e.target.value); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtBaseOrigen}>
+              <option value="">{filtBaseOrigen ? (itemsFiltrados.length === 0 ? "Sin ítems disponibles" : "Seleccioná ítem...") : "Primero elegí base"}</option>
+              {itemsFiltrados.map(i => (
                 <option key={i.id} value={i.id}>
-                  #{i.item_numero} — {i.modelo} ({i.ubicacion})
+                  #{i.item_numero}{i.numero_serie ? ` — Serie: ${i.numero_serie}` : ""} — {i.estado}
                 </option>
               ))}
             </select>
+            {filtBaseOrigen && itemsFiltrados.length === 0 && (
+              <span className="form-hint" style={{ color: "#991B1B" }}>No hay ítems disponibles con esos filtros.</span>
+            )}
           </div>
 
           {itemSeleccionado && (
@@ -484,9 +537,9 @@ function TabMovimientos({ items, onMovimientoCreado }) {
 
           <div className="form-group">
             <label className="form-label">Base de destino</label>
-            <select className="form-input" value={baseDestino} onChange={e => { setBaseDestino(e.target.value); setErrorMsg(""); setSuccessMsg(""); }}>
+            <select className="form-input" value={baseDestino} onChange={e => { setBaseDestino(e.target.value); setErrorMsg(""); setSuccessMsg(""); }} disabled={!itemId}>
               <option value="">Seleccioná base de destino...</option>
-              {bases.filter(b => b !== itemSeleccionado?.ubicacion).map(b => (
+              {basesDestino.filter(b => b !== itemSeleccionado?.ubicacion).map(b => (
                 <option key={b} value={b}>{b}</option>
               ))}
             </select>
@@ -548,7 +601,7 @@ function TabMovimientos({ items, onMovimientoCreado }) {
                 {movimientos.map(mov => (
                   <tr key={mov.id}>
                     <td className="cell-num" style={{ whiteSpace: "nowrap" }}>
-                      {new Date(mov.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      {new Date(mov.created_at).toLocaleString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
                     </td>
                     <td style={{ fontWeight: 500 }}>
                       {mov.inventario_items?.modelo || "—"}
