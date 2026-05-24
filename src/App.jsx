@@ -353,15 +353,17 @@ function ModalItem({ item, onClose, onSaved, usuario }) {
 
 // ─── TAB INVENTARIO ───────────────────────────────────────────────────────────
 function TabInventario({ items, onReload, usuario }) {
-  const [search, setSearch]           = useState("");
-  const [filtFamilia, setFiltFamilia] = useState("");
-  const [filtBase, setFiltBase]       = useState("");
-  const [filtEst, setFiltEst]         = useState("");
-  const [page, setPage]               = useState(1);
-  const [pageSize, setPageSize]       = useState(50);
-  const [modalItem, setModalItem]     = useState(null); // null=cerrado, false=nuevo, obj=editar
+  const [search, setSearch]               = useState("");
+  const [filtFamilia, setFiltFamilia]     = useState("");
+  const [filtSubtipo, setFiltSubtipo]     = useState("");
+  const [filtBase, setFiltBase]           = useState("");
+  const [filtEst, setFiltEst]             = useState("");
+  const [filtCondicion, setFiltCondicion] = useState("");
+  const [page, setPage]                   = useState(1);
+  const [pageSize, setPageSize]           = useState(50);
+  const [modalItem, setModalItem]         = useState(null);
 
-  useEffect(() => { setPage(1); }, [search, filtFamilia, filtBase, filtEst, pageSize]);
+  useEffect(() => { setPage(1); }, [search, filtFamilia, filtSubtipo, filtBase, filtEst, filtCondicion, pageSize]);
 
   const filtered = items.filter(it => {
     const q = search.toLowerCase();
@@ -370,14 +372,18 @@ function TabInventario({ items, onReload, usuario }) {
       it.combustible, it.obs, String(it.item_numero || "")]
       .some(f => f && String(f).toLowerCase().includes(q));
     return matchSearch &&
-      (!filtFamilia || it.familia === filtFamilia) &&
-      (!filtBase    || it.ubicacion === filtBase) &&
-      (!filtEst     || it.estado === filtEst);
+      (!filtFamilia   || it.familia   === filtFamilia) &&
+      (!filtSubtipo   || it.subtipo   === filtSubtipo) &&
+      (!filtBase      || it.ubicacion === filtBase) &&
+      (!filtEst       || it.estado    === filtEst) &&
+      (!filtCondicion || it.condicion === filtCondicion);
   });
 
   const familias   = [...new Set(items.map(i => i.familia).filter(Boolean))].sort();
+  const subtipos   = [...new Set(items.filter(i => !filtFamilia || i.familia === filtFamilia).map(i => i.subtipo).filter(Boolean))].sort();
   const bases      = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
   const estados    = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
+  const condiciones = [...new Set(items.map(i => i.condicion).filter(Boolean))].sort();
   const totalPages = Math.ceil(filtered.length / pageSize);
   const pageItems  = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -390,9 +396,13 @@ function TabInventario({ items, onReload, usuario }) {
             placeholder="Buscar por modelo, familia, subtipo, capacidad, base, Nº serie..."
             value={search} onChange={e => setSearch(e.target.value)}
           />
-          <select className="filter-select" value={filtFamilia} onChange={e => setFiltFamilia(e.target.value)}>
+          <select className="filter-select" value={filtFamilia} onChange={e => { setFiltFamilia(e.target.value); setFiltSubtipo(""); }}>
             <option value="">Todas las familias</option>
             {familias.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+          <select className="filter-select" value={filtSubtipo} onChange={e => setFiltSubtipo(e.target.value)}>
+            <option value="">Todos los subtipos</option>
+            {subtipos.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
           <select className="filter-select" value={filtBase} onChange={e => setFiltBase(e.target.value)}>
             <option value="">Todas las bases</option>
@@ -402,13 +412,17 @@ function TabInventario({ items, onReload, usuario }) {
             <option value="">Todos los estados</option>
             {estados.map(est => <option key={est} value={est}>{est}</option>)}
           </select>
+          <select className="filter-select" value={filtCondicion} onChange={e => setFiltCondicion(e.target.value)}>
+            <option value="">Todas las condiciones</option>
+            {condiciones.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
           <div className="toolbar-right">
             <span className="count-badge">{filtered.length} resultados</span>
             <select className="filter-select" style={{ minWidth: 120 }} value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
               {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} por página</option>)}
             </select>
-            {(search || filtFamilia || filtBase || filtEst) &&
-              <button className="clear-btn" onClick={() => { setSearch(""); setFiltFamilia(""); setFiltBase(""); setFiltEst(""); setPage(1); }}>Limpiar</button>
+            {(search || filtFamilia || filtSubtipo || filtBase || filtEst || filtCondicion) &&
+              <button className="clear-btn" onClick={() => { setSearch(""); setFiltFamilia(""); setFiltSubtipo(""); setFiltBase(""); setFiltEst(""); setFiltCondicion(""); setPage(1); }}>Limpiar</button>
             }
             <button className="btn-nuevo" onClick={() => setModalItem(false)}>+ Nuevo ítem</button>
           </div>
