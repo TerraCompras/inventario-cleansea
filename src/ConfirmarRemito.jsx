@@ -98,6 +98,22 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 }
 `;
 
+
+const BASE_EMAIL_MAP = {
+  "San Lorenzo":   "sanlorenzo@cleansea.com.ar",
+  "Bahía Blanca":  "bahiablanca@cleansea.com.ar",
+  "Patagonia":     "patagonia@cleansea.com.ar",
+  "Barranqueras":  "barranqueras@cleansea.com.ar",
+};
+
+const emailCorrespondeABase = (email, base_destino) => {
+  if (!base_destino || !email) return false;
+  const emailEsperado = BASE_EMAIL_MAP[base_destino];
+  // Si la base no tiene email mapeado, permitir a cualquier usuario con confirmar-remitos
+  if (!emailEsperado) return true;
+  return email.toLowerCase() === emailEsperado.toLowerCase();
+};
+
 export default function ConfirmarRemito() {
   const { token } = useParams();
 
@@ -114,6 +130,8 @@ export default function ConfirmarRemito() {
   const [remitoLoading, setRemitoLoading] = useState(false);
   const [notFound, setNotFound]     = useState(false);
   const [tieneAcceso, setTieneAcceso] = useState(false);
+
+  const [baseIncorrecta, setBaseIncorrecta] = useState(false);
 
   // Acciones
   const [motivo, setMotivo]         = useState("");
@@ -164,6 +182,15 @@ export default function ConfirmarRemito() {
         .maybeSingle();
       if (error) throw error;
       if (!data) { setNotFound(true); return; }
+
+      // Verificar que el usuario corresponde a la base destino
+      if (!emailCorrespondeABase(session.user.email, data.base_destino)) {
+        setBaseIncorrecta(true);
+        setRemito(data); // cargar igual para mostrar info del remito
+        setRemitoLoading(false);
+        return;
+      }
+
       setRemito(data);
     } catch (e) {
       setNotFound(true);
@@ -264,8 +291,20 @@ export default function ConfirmarRemito() {
             </div>
           )}
 
+          {/* BASE INCORRECTA */}
+          {!authLoading && !remitoLoading && session && tieneAcceso && baseIncorrecta && remito && (
+            <div className="sin-acceso">
+              <div className="sin-acceso-title">Remito no corresponde a tu base</div>
+              <div className="sin-acceso-sub">
+                Este remito está dirigido a <strong>{remito.base_destino}</strong>.<br/>
+                Tu cuenta ({session.user.email}) no tiene permisos para confirmarlo.
+              </div>
+              <div className="logout-link" onClick={handleLogout}>Cerrar sesión</div>
+            </div>
+          )}
+
           {/* NOT FOUND */}
-          {!authLoading && !remitoLoading && session && tieneAcceso && notFound && (
+          {!authLoading && !remitoLoading && session && tieneAcceso && !baseIncorrecta && notFound && (
             <div className="not-found">
               <div className="not-found-title">Remito no encontrado</div>
               <div className="not-found-sub">El link puede ser inválido o ya expiró.</div>
@@ -274,7 +313,7 @@ export default function ConfirmarRemito() {
           )}
 
           {/* REMITO CARGADO */}
-          {!authLoading && !remitoLoading && session && tieneAcceso && remito && (
+          {!authLoading && !remitoLoading && session && tieneAcceso && !baseIncorrecta && remito && (
             <>
               <div className="remito-body">
                 <div className="section-title">Datos del movimiento</div>
