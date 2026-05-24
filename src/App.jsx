@@ -165,7 +165,7 @@ tr:hover td { background: #F8FAFC; }
 .mov-table-count { font-family: var(--mono); font-size: 10px; color: var(--muted); }
 .mov-table { width: 100%; border-collapse: collapse; }
 .mov-table th { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); background: #F8FAFC; white-space: nowrap; }
-.mov-table td { padding: 11px 16px; border-bottom: 1px solid #F0F4F8; font-size: 12px; color: var(--text); vertical-align: middle; }
+.mov-table td { padding: 11px 16px; border-bottom: 1px solid #F0F4F8; font-size: 12px; color: var(--text); vertical-align: middle; text-align: left; }
 .mov-table tr:last-child td { border-bottom: none; }
 .mov-table tr:hover td { background: #F8FAFC; }
 .arrow-badge { font-family: var(--mono); font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
@@ -174,6 +174,8 @@ tr:hover td { background: #F8FAFC; }
 
 /* HISTORIAL */
 .hist-content { padding: 32px 40px 60px; }
+.hist-table-outer { overflow-x: auto; width: 100%; }
+.hist-table-outer .mov-table { min-width: 900px; }
 .badge-tipo { display: inline-block; font-family: var(--mono); font-size: 8px; font-weight: 700; padding: 2px 7px; border-radius: 4px; white-space: nowrap; letter-spacing: .5px; }
 .badge-alta { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
 .badge-edicion { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
@@ -726,7 +728,7 @@ function TabHistorial() {
         : loading ? <div className="mov-empty">Cargando...</div>
         : cambios.length === 0 ? <div className="mov-empty">No hay cambios registrados aún.</div>
         : (
-          <table className="mov-table">
+          <div className="hist-table-outer"><table className="mov-table">
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -754,7 +756,7 @@ function TabHistorial() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>
