@@ -1,3 +1,4 @@
+// v2.0 familia/subtipo/capacidad
 import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
 
