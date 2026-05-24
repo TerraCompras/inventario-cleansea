@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
 
 const PORTAL_URL = "https://clean-sea-portal.vercel.app";
@@ -166,43 +166,7 @@ export default function App() {
   const [page, setPage]           = useState(1);
   const [pageSize, setPageSize]   = useState(50);
 
-  const scrollTopRef    = useRef(null);
-  const scrollBottomRef = useRef(null);
-  const syncingRef      = useRef(false);
 
-  // Sincronizar scroll superior e inferior
-  useEffect(() => {
-    const top = scrollTopRef.current;
-    const bot = scrollBottomRef.current;
-    if (!top || !bot) return;
-
-    // Ajustar ancho del div fantasma al ancho real de la tabla
-    const table = bot.querySelector("table");
-    if (table) {
-      const inner = top.querySelector(".scroll-top-bar-inner");
-      if (inner) inner.style.width = table.scrollWidth + "px";
-    }
-
-    const onTopScroll = () => {
-      if (syncingRef.current) return;
-      syncingRef.current = true;
-      bot.scrollLeft = top.scrollLeft;
-      syncingRef.current = false;
-    };
-    const onBotScroll = () => {
-      if (syncingRef.current) return;
-      syncingRef.current = true;
-      top.scrollLeft = bot.scrollLeft;
-      syncingRef.current = false;
-    };
-
-    top.addEventListener("scroll", onTopScroll);
-    bot.addEventListener("scroll", onBotScroll);
-    return () => {
-      top.removeEventListener("scroll", onTopScroll);
-      bot.removeEventListener("scroll", onBotScroll);
-    };
-  }, [pageItems]);
 
   const loadItems = async () => {
     setLoading(true);
@@ -250,6 +214,31 @@ export default function App() {
   const clearFilters = () => {
     setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1);
   };
+
+  // Listeners de scroll — solo se registran una vez al montar
+  useEffect(() => {
+    const top = document.getElementById("inv-scroll-top");
+    const bot = document.getElementById("inv-scroll-bot");
+    if (!top || !bot) return;
+    let syncing = false;
+    const onTopScroll = () => { if (syncing) return; syncing = true; bot.scrollLeft = top.scrollLeft; syncing = false; };
+    const onBotScroll = () => { if (syncing) return; syncing = true; top.scrollLeft = bot.scrollLeft; syncing = false; };
+    top.addEventListener("scroll", onTopScroll);
+    bot.addEventListener("scroll", onBotScroll);
+    return () => {
+      top.removeEventListener("scroll", onTopScroll);
+      bot.removeEventListener("scroll", onBotScroll);
+    };
+  }, []);
+
+  // Ajustar ancho del div fantasma cuando cambia la cantidad de items visibles
+  useEffect(() => {
+    const bot = document.getElementById("inv-scroll-bot");
+    const inner = document.getElementById("inv-scroll-top-inner");
+    if (!bot || !inner) return;
+    const tbl = bot.querySelector("table");
+    if (tbl) inner.style.width = tbl.scrollWidth + "px";
+  }, [pageItems.length, filtered.length]);
 
 
 
@@ -355,11 +344,11 @@ export default function App() {
       </div>
 
       {/* Barra de scroll superior sincronizada */}
-      <div className="scroll-top-bar" ref={scrollTopRef}>
-        <div className="scroll-top-bar-inner" style={{ minWidth: 1300 }} />
+      <div className="scroll-top-bar" id="inv-scroll-top">
+        <div className="scroll-top-bar-inner" id="inv-scroll-top-inner" style={{ minWidth: 1300 }} />
       </div>
 
-      <div className="table-outer" ref={scrollBottomRef}>
+      <div className="table-outer" id="inv-scroll-bot">
         <table>
           <thead>
             <tr>
