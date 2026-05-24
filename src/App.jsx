@@ -239,6 +239,27 @@ tr:hover td { background: #F8FAFC; }
 .remito-firma-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
 .remito-estado-confirmado { background: #D1FAE5; border: 1px solid #A7F3D0; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; color: #065F46; }
 
+
+/* CARRITO DE REMITO */
+.carrito-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 16px; }
+.carrito-header { padding: 12px 16px; background: #F8FAFC; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.carrito-title { font-size: 12px; font-weight: 700; color: var(--navy); }
+.carrito-count { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.carrito-item { padding: 10px 16px; border-bottom: 1px solid #F0F4F8; font-size: 11px; display: flex; align-items: center; gap: 10px; }
+.carrito-item:last-child { border-bottom: none; }
+.carrito-item-info { flex: 1; }
+.carrito-item-modelo { font-weight: 600; color: var(--navy); }
+.carrito-item-meta { color: var(--muted); font-size: 10px; margin-top: 2px; }
+.carrito-item-remove { background: none; border: none; color: #EF4444; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+.carrito-item-remove:hover { background: #FEE2E2; }
+.carrito-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 11px; }
+.cantidad-input-wrap { display: flex; align-items: center; gap: 6px; }
+.cantidad-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+.cantidad-ok { background: #D1FAE5; color: #065F46; }
+.cantidad-error { background: #FEE2E2; color: #991B1B; }
+.btn-agregar { font-family: var(--sans); font-size: 11px; font-weight: 700; color: #fff; background: var(--blue); border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.btn-agregar:hover { background: #1A4A7A; }
+.btn-agregar:disabled { opacity: .5; cursor: not-allowed; }
 .loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
 .loading-text { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: 2px; text-transform: uppercase; }
 .empty { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 13px; }
@@ -470,17 +491,24 @@ function ModalRemito({ remito, onClose }) {
                 <tr>
                   <th>Descripción</th>
                   <th>Familia</th>
+                  <th>Origen</th>
                   <th>Cantidad</th>
-                  <th>Nº Serie</th>
+                  <th>Transportista</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td style={{ fontWeight:600 }}>{remito.inventario_items?.modelo || "—"}</td>
-                  <td>{remito.inventario_items?.familia || "—"}</td>
-                  <td style={{ fontFamily:"var(--mono)" }}>{remito.cantidad}</td>
-                  <td style={{ fontFamily:"var(--mono)", color:"var(--muted)" }}>{remito.inventario_items?.numero_serie || "—"}</td>
-                </tr>
+                {(remito.inventario_remito_items || []).map((linea, idx) => (
+                  <tr key={linea.id || idx}>
+                    <td style={{ fontWeight:600 }}>{linea.inventario_items?.modelo || "—"}</td>
+                    <td>{linea.inventario_items?.familia || "—"}</td>
+                    <td>{linea.base_origen || "—"}</td>
+                    <td style={{ fontFamily:"var(--mono)" }}>{linea.cantidad}</td>
+                    <td style={{ color:"var(--muted)" }}>{linea.transportista || "—"}</td>
+                  </tr>
+                ))}
+                {(!remito.inventario_remito_items || remito.inventario_remito_items.length === 0) && (
+                  <tr><td colSpan={5} style={{ textAlign:"center", color:"var(--muted)", padding:16 }}>Sin líneas</td></tr>
+                )}
               </tbody>
             </table>
 
@@ -671,16 +699,28 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
   const [successMsg, setSuccessMsg]         = useState("");
   const [errorMsg, setErrorMsg]             = useState("");
   const [errorLoad, setErrorLoad]           = useState("");
+
+  // Filtros cascada para buscar ítem
   const [filtFamilia, setFiltFamilia]       = useState("");
   const [filtSubtipo, setFiltSubtipo]       = useState("");
+  const [filtCapacidad, setFiltCapacidad]   = useState("");
+  const [filtCombustible, setFiltCombustible] = useState("");
   const [filtBaseOrigen, setFiltBaseOrigen] = useState("");
   const [itemId, setItemId]                 = useState("");
   const [cantidadMov, setCantidadMov]       = useState(1);
-  const [baseDestino, setBaseDestino]       = useState("");
-  const [motivo, setMotivo]                 = useState("");
-  const [transportista, setTransportista]   = useState("");
-  const [emailDestino, setEmailDestino]     = useState("");
+  const [transportistaLinea, setTransportistaLinea] = useState("");
+  const [emailTransportistaLinea, setEmailTransportistaLinea] = useState("");
+
+  // Carrito
+  const [lineas, setLineas]                 = useState([]);
+
+  // Carrito y remito creado
   const [remitoCreado, setRemitoCreado]     = useState(null);
+
+  // Datos generales del remito
+  const [baseDestino, setBaseDestino]       = useState("");
+  const [emailDestino, setEmailDestino]     = useState("");
+  const [observaciones, setObservaciones]   = useState("");
 
   useEffect(() => { loadMovimientos(); }, []);
 
@@ -697,70 +737,118 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
     finally { setLoadingMov(false); }
   };
 
-  const itemsMovibles  = items.filter(i => i.estado === "Disponible" || i.estado === "En uso");
+  // Cascada de filtros — excluir ítems ya en el carrito
+  const idsEnCarrito = new Set(lineas.map(l => l.itemId));
+  const itemsMovibles = items.filter(i => (i.estado === "Disponible" || i.estado === "En uso") && !idsEnCarrito.has(i.id));
   const familiasCasc   = [...new Set(itemsMovibles.map(i => i.familia).filter(Boolean))].sort();
   const subtiposCasc   = [...new Set(itemsMovibles.filter(i => !filtFamilia || i.familia === filtFamilia).map(i => i.subtipo).filter(Boolean))].sort();
-  const basesCasc      = [...new Set(itemsMovibles.filter(i => (!filtFamilia || i.familia === filtFamilia) && (!filtSubtipo || i.subtipo === filtSubtipo)).map(i => i.ubicacion).filter(Boolean))].sort();
-  const itemsFiltrados = itemsMovibles.filter(i => (!filtFamilia || i.familia === filtFamilia) && (!filtSubtipo || i.subtipo === filtSubtipo) && (!filtBaseOrigen || i.ubicacion === filtBaseOrigen));
-  const itemSel        = items.find(i => i.id === itemId);
-  const basesDestino   = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
-  const maxCantidad    = itemSel ? (itemSel.numero_serie ? 1 : (itemSel.cantidad || 1)) : 1;
+  const capacidadesCasc = [...new Set(itemsMovibles.filter(i => (!filtFamilia || i.familia === filtFamilia) && (!filtSubtipo || i.subtipo === filtSubtipo)).map(i => i.capacidad).filter(Boolean))].sort();
+  const combustiblesCasc = [...new Set(itemsMovibles.filter(i => (!filtFamilia || i.familia === filtFamilia) && (!filtSubtipo || i.subtipo === filtSubtipo) && (!filtCapacidad || i.capacidad === filtCapacidad)).map(i => i.combustible).filter(Boolean))].sort();
+  const basesCasc = [...new Set(itemsMovibles.filter(i =>
+    (!filtFamilia || i.familia === filtFamilia) &&
+    (!filtSubtipo || i.subtipo === filtSubtipo) &&
+    (!filtCapacidad || i.capacidad === filtCapacidad) &&
+    (!filtCombustible || i.combustible === filtCombustible)
+  ).map(i => i.ubicacion).filter(Boolean))].sort();
+  const itemsFiltrados = itemsMovibles.filter(i =>
+    (!filtFamilia    || i.familia    === filtFamilia) &&
+    (!filtSubtipo    || i.subtipo    === filtSubtipo) &&
+    (!filtCapacidad  || i.capacidad  === filtCapacidad) &&
+    (!filtCombustible|| i.combustible=== filtCombustible) &&
+    (!filtBaseOrigen || i.ubicacion  === filtBaseOrigen)
+  );
+  const itemSel     = items.find(i => i.id === itemId);
+  const maxCantidad = itemSel ? (itemSel.numero_serie ? 1 : (itemSel.cantidad || 1)) : 1;
+  const cantExcede  = cantidadMov > maxCantidad;
+  const basesDestino = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
 
-  const resetFiltros = () => { setFiltFamilia(""); setFiltSubtipo(""); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setBaseDestino(""); setTransportista(""); setEmailDestino(""); setMotivo(""); setErrorMsg(""); setSuccessMsg(""); };
+  const resetBuscador = () => {
+    setFiltFamilia(""); setFiltSubtipo(""); setFiltCapacidad(""); setFiltCombustible("");
+    setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1);
+    setTransportistaLinea(""); setEmailTransportistaLinea(""); setErrorMsg("");
+  };
 
-  // Generar número de remito: CS-{COD_ORIGEN}-{N}
-  const generarNumero = async (origen) => {
-    const cod = codigoBase(origen);
-    const prefix = `CS-${cod}-`;
-    const { data } = await supabase.from("inventario_remitos").select("numero").ilike("numero", `${prefix}%`).order("created_at", { ascending: false }).limit(1);
-    if (data && data.length > 0) {
-      const last = parseInt(data[0].numero.split("-").pop()) || 0;
-      return `${prefix}${String(last + 1).padStart(3, "0")}`;
-    }
-    return `${prefix}001`;
+  const agregarLinea = () => {
+    if (!itemId)    { setErrorMsg("Seleccioná un ítem."); return; }
+    if (cantExcede) { setErrorMsg(`Cantidad máxima disponible: ${maxCantidad}`); return; }
+    if (cantidadMov < 1) { setErrorMsg("Cantidad mínima: 1"); return; }
+    if (baseDestino && itemSel.ubicacion === baseDestino) { setErrorMsg("La base destino no puede ser igual a la de origen."); return; }
+    setLineas(prev => [...prev, {
+      itemId, item: itemSel, cantidad: cantidadMov,
+      baseOrigen: itemSel.ubicacion,
+      transportista: transportistaLinea,
+      emailTransportista: emailTransportistaLinea,
+    }]);
+    resetBuscador();
+  };
+
+  const quitarLinea = (idx) => setLineas(prev => prev.filter((_, i) => i !== idx));
+
+  const generarNumero = async () => {
+    const prefix = "CS-REM-";
+    const { data } = await supabase.from("inventario_remitos").select("numero")
+      .ilike("numero", `${prefix}%`).order("created_at", { ascending: false }).limit(1);
+    const last = (data && data.length > 0) ? (parseInt(data[0].numero.split("-").pop()) || 0) : 0;
+    return `${prefix}${String(last + 1).padStart(4, "0")}`;
   };
 
   const handleSubmit = async () => {
-    if (!itemId)      { setErrorMsg("Seleccioná un ítem."); return; }
-    if (!baseDestino) { setErrorMsg("Seleccioná la base de destino."); return; }
-    if (baseDestino === itemSel.ubicacion) { setErrorMsg("La base destino no puede ser igual a la de origen."); return; }
-    if (cantidadMov < 1 || cantidadMov > maxCantidad) { setErrorMsg(`Cantidad debe ser entre 1 y ${maxCantidad}.`); return; }
+    if (lineas.length === 0) { setErrorMsg("Agregá al menos un ítem al remito."); return; }
+    if (!baseDestino)        { setErrorMsg("Seleccioná la base de destino."); return; }
+    const origenesConDestino = lineas.filter(l => l.baseOrigen === baseDestino);
+    if (origenesConDestino.length > 0) { setErrorMsg(`El ítem "${origenesConDestino[0].item.modelo?.substring(0,30)}" ya está en la base destino.`); return; }
 
-    const snapId = itemId, snapOrigen = itemSel.ubicacion, snapModelo = itemSel.modelo;
     setSaving(true); setErrorMsg(""); setSuccessMsg("");
     try {
-      // 1. Actualizar ubicación
-      const { error: e1 } = await supabase.from("inventario_items").update({ ubicacion: baseDestino }).eq("id", snapId);
-      if (e1) throw e1;
-
-      // 2. Registrar movimiento
-      const { data: movData, error: e2 } = await supabase.from("inventario_movimientos")
-        .insert({ item_id: snapId, base_origen: snapOrigen, base_destino: baseDestino, cantidad: cantidadMov, motivo: motivo || null, usuario })
-        .select().single();
-      if (e2) throw e2;
-
-      // 3. Log de cambio
-      const { error: errLog } = await supabase.from("inventario_cambios").insert({ item_id: snapId, tipo: "MOVIMIENTO", campo: "ubicacion", valor_anterior: snapOrigen, valor_nuevo: baseDestino, usuario });
-      if (errLog) console.error("Log:", errLog.message);
-
-      // 4. Crear remito con reintentos ante race condition de número duplicado
-      let numero = await generarNumero(snapOrigen);
+      // 1. Generar número de remito
+      let numero = await generarNumero();
       let remData, e3;
       for (let intento = 0; intento < 3; intento++) {
-        const remitoPayload = { numero, movimiento_id: movData.id, item_id: snapId, base_origen: snapOrigen, base_destino: baseDestino, transportista: transportista || null, email_destino: emailDestino || null, cantidad: cantidadMov, observaciones: motivo || null, estado: "Pendiente", usuario_emisor: usuario };
-        ({ data: remData, error: e3 } = await supabase.from("inventario_remitos").insert(remitoPayload).select("*, inventario_items(modelo, familia, subtipo, numero_serie)").single());
+        ({ data: remData, error: e3 } = await supabase.from("inventario_remitos")
+          .insert({ numero, base_destino: baseDestino, email_destino: emailDestino || null, observaciones: observaciones || null, estado: "Pendiente", usuario_emisor: usuario })
+          .select().single());
         if (!e3) break;
         if (e3.code === "23505") {
           const n = parseInt(numero.split("-").pop()) || 0;
-          const prefix = numero.substring(0, numero.lastIndexOf("-") + 1);
-          numero = `${prefix}${String(n + 1).padStart(3, "0")}`;
+          numero = `CS-REM-${String(n + 1).padStart(4, "0")}`;
         } else break;
       }
       if (e3) throw e3;
 
-      setRemitoCreado(remData);
-      setSuccessMsg(`✓ Movimiento registrado — Remito ${numero} generado`);
-      resetFiltros();
+      // 2. Procesar cada línea
+      for (const linea of lineas) {
+        // Actualizar ubicación
+        const { error: eUpd } = await supabase.from("inventario_items").update({ ubicacion: baseDestino }).eq("id", linea.itemId);
+        if (eUpd) throw eUpd;
+
+        // Registrar movimiento
+        const { data: movData, error: eMov } = await supabase.from("inventario_movimientos")
+          .insert({ item_id: linea.itemId, base_origen: linea.baseOrigen, base_destino: baseDestino, cantidad: linea.cantidad, motivo: observaciones || null, usuario })
+          .select().single();
+        if (eMov) throw eMov;
+
+        // Log de cambio
+        const { error: eLog } = await supabase.from("inventario_cambios").insert({ item_id: linea.itemId, tipo: "MOVIMIENTO", campo: "ubicacion", valor_anterior: linea.baseOrigen, valor_nuevo: baseDestino, usuario });
+        if (eLog) console.error("Log:", eLog.message);
+
+        // Línea del remito
+        const { error: eLinea } = await supabase.from("inventario_remito_items").insert({
+          remito_id: remData.id, item_id: linea.itemId, base_origen: linea.baseOrigen,
+          cantidad: linea.cantidad, transportista: linea.transportista || null,
+          email_transportista: linea.emailTransportista || null,
+        });
+        if (eLinea) throw eLinea;
+      }
+
+      // 3. Cargar remito completo para el modal
+      const { data: remFull } = await supabase.from("inventario_remitos")
+        .select("*, inventario_remito_items(*, inventario_items(modelo, familia, subtipo, numero_serie, capacidad))")
+        .eq("id", remData.id).single();
+
+      if (remFull) setRemitoCreado(remFull);
+      setSuccessMsg(`✓ Remito ${numero} generado con ${lineas.length} ítem${lineas.length > 1 ? "s" : ""}`);
+      setLineas([]);
+      setBaseDestino(""); setEmailDestino(""); setObservaciones("");
       await loadMovimientos();
       onMovimientoCreado();
     } catch (e) { setErrorMsg("Error: " + e.message); }
@@ -770,114 +858,180 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
   return (
     <div className="mov-content">
       <div className="section-label">Movimientos de equipamiento</div>
-      <div className="mov-grid">
-        <div className="form-card">
-          <div className="form-card-title">Registrar movimiento</div>
-          {successMsg && <div className="form-success">{successMsg}</div>}
-          {errorMsg   && <div className="form-error">{errorMsg}</div>}
+      <div style={{ display:"grid", gridTemplateColumns:"420px 1fr", gap:24, alignItems:"start" }}>
 
-          <div className="form-group">
-            <label className="form-label">1. Familia</label>
-            <select className="form-input" value={filtFamilia} onChange={e => { setFiltFamilia(e.target.value); setFiltSubtipo(""); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }}>
-              <option value="">Todas las familias...</option>
-              {familiasCasc.map(f => <option key={f} value={f}>{f}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">2. Subtipo</label>
-            <select className="form-input" value={filtSubtipo} onChange={e => { setFiltSubtipo(e.target.value); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtFamilia}>
-              <option value="">{filtFamilia ? "Seleccioná subtipo..." : "Primero elegí familia"}</option>
-              {subtiposCasc.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">3. Base de origen</label>
-            <select className="form-input" value={filtBaseOrigen} onChange={e => { setFiltBaseOrigen(e.target.value); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtFamilia}>
-              <option value="">{filtFamilia ? "Seleccioná base..." : "Primero elegí familia"}</option>
-              {basesCasc.map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">4. Ítem específico</label>
-            <select className="form-input" value={itemId} onChange={e => { setItemId(e.target.value); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtBaseOrigen}>
-              <option value="">{filtBaseOrigen ? (itemsFiltrados.length === 0 ? "Sin ítems disponibles" : "Seleccioná ítem...") : "Primero elegí base"}</option>
-              {itemsFiltrados.map(i => <option key={i.id} value={i.id}>#{i.item_numero}{i.numero_serie ? ` — ${i.numero_serie}` : ""} — {i.modelo?.substring(0,30)}</option>)}
-            </select>
-          </div>
+        {/* PANEL IZQUIERDO */}
+        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
 
-          {itemSel && (
-            <div style={{ background:"#F0F4F8", border:"1px solid var(--border)", borderRadius:8, padding:"10px 14px", fontSize:11 }}>
-              <div style={{ fontWeight:700, color:"var(--navy)", marginBottom:4 }}>{itemSel.modelo}</div>
-              <div style={{ color:"var(--muted)" }}>Base actual: <strong style={{ color:"var(--navy)" }}>{itemSel.ubicacion}</strong></div>
-              <div style={{ color:"var(--muted)" }}>Estado: {itemSel.estado}</div>
+          {/* BUSCADOR DE ÍTEM */}
+          <div className="form-card">
+            <div className="form-card-title">Buscar ítem</div>
+            {errorMsg && <div className="form-error">{errorMsg}</div>}
+
+            <div className="form-group">
+              <label className="form-label">1. Familia</label>
+              <select className="form-input" value={filtFamilia} onChange={e => { setFiltFamilia(e.target.value); setFiltSubtipo(""); setFiltCapacidad(""); setFiltCombustible(""); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); }}>
+                <option value="">Todas las familias...</option>
+                {familiasCasc.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
             </div>
-          )}
+            <div className="form-group">
+              <label className="form-label">2. Subtipo</label>
+              <select className="form-input" value={filtSubtipo} onChange={e => { setFiltSubtipo(e.target.value); setFiltCapacidad(""); setFiltCombustible(""); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); }} disabled={!filtFamilia}>
+                <option value="">{filtFamilia ? "Seleccioná subtipo..." : "Primero elegí familia"}</option>
+                {subtiposCasc.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">3. Capacidad</label>
+              <select className="form-input" value={filtCapacidad} onChange={e => { setFiltCapacidad(e.target.value); setFiltCombustible(""); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); }} disabled={!filtSubtipo}>
+                <option value="">{filtSubtipo ? "Todas las capacidades..." : "Primero elegí subtipo"}</option>
+                {capacidadesCasc.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">4. Combustible / Material</label>
+              <select className="form-input" value={filtCombustible} onChange={e => { setFiltCombustible(e.target.value); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); }} disabled={!filtSubtipo}>
+                <option value="">{filtSubtipo ? "Todos..." : "Primero elegí subtipo"}</option>
+                {combustiblesCasc.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">5. Base de origen</label>
+              <select className="form-input" value={filtBaseOrigen} onChange={e => { setFiltBaseOrigen(e.target.value); setItemId(""); setCantidadMov(1); setErrorMsg(""); }} disabled={!filtFamilia}>
+                <option value="">{filtFamilia ? "Todas las bases..." : "Primero elegí familia"}</option>
+                {basesCasc.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">6. Ítem específico</label>
+              <select className="form-input" value={itemId} onChange={e => { setItemId(e.target.value); setCantidadMov(1); setErrorMsg(""); }} disabled={!filtBaseOrigen}>
+                <option value="">{filtBaseOrigen ? (itemsFiltrados.length === 0 ? "Sin ítems disponibles" : "Seleccioná ítem...") : "Primero elegí base"}</option>
+                {itemsFiltrados.map(i => <option key={i.id} value={i.id}>#{i.item_numero} — {i.modelo?.substring(0,35)} ({i.estado})</option>)}
+              </select>
+            </div>
 
-          <div className="form-group">
-            <label className="form-label">Base de destino</label>
-            <select className="form-input" value={baseDestino} onChange={e => { setBaseDestino(e.target.value); setErrorMsg(""); setSuccessMsg(""); }} disabled={!itemId}>
-              <option value="">Seleccioná base de destino...</option>
-              {basesDestino.filter(b => b !== itemSel?.ubicacion).map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Cantidad</label>
-            <input type="number" className="form-input" min={1} max={maxCantidad} value={cantidadMov} onChange={e => setCantidadMov(Number(e.target.value))} disabled={!!itemSel?.numero_serie} />
-            {itemSel?.numero_serie ? <span className="form-hint">Ítem único — cantidad fija en 1</span> : itemSel && <span className="form-hint">Máximo: {maxCantidad}</span>}
-          </div>
+            {itemSel && (
+              <div style={{ background:"#F0F4F8", border:"1px solid var(--border)", borderRadius:8, padding:"10px 14px", fontSize:11 }}>
+                <div style={{ fontWeight:700, color:"var(--navy)", marginBottom:4 }}>{itemSel.modelo}</div>
+                <div style={{ color:"var(--muted)" }}>Base: <strong style={{ color:"var(--navy)" }}>{itemSel.ubicacion}</strong> · Stock disponible: <strong style={{ color:"var(--navy)" }}>{itemSel.numero_serie ? "único" : itemSel.cantidad}</strong></div>
+                {itemSel.capacidad && <div style={{ color:"var(--muted)" }}>Capacidad: {itemSel.capacidad}</div>}
+              </div>
+            )}
 
-          <div style={{ borderTop:"1px solid var(--border)", paddingTop:16, display:"flex", flexDirection:"column", gap:12 }}>
-            <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1, color:"var(--muted)", textTransform:"uppercase" }}>Datos del remito</div>
+            <div className="form-group">
+              <label className="form-label">Cantidad</label>
+              <input type="number" className="form-input"
+                min={1} max={maxCantidad} value={cantidadMov}
+                onChange={e => { setCantidadMov(Number(e.target.value)); setErrorMsg(""); }}
+                disabled={!!itemSel?.numero_serie}
+                style={{ borderColor: cantExcede ? "#EF4444" : undefined }}
+              />
+              {itemSel && (
+                <span className={`cantidad-badge ${cantExcede ? "cantidad-error" : "cantidad-ok"}`} style={{ display:"inline-block", marginTop:4 }}>
+                  {cantExcede ? `⚠ Excede el máximo (${maxCantidad})` : `✓ Stock disponible: ${itemSel.numero_serie ? "único" : maxCantidad}`}
+                </span>
+              )}
+            </div>
+
             <div className="form-group">
               <label className="form-label">Transportista</label>
-              <input type="text" className="form-input" placeholder="Nombre del transportista" value={transportista} onChange={e => setTransportista(e.target.value)} />
+              <input type="text" className="form-input" placeholder="Nombre del transportista" value={transportistaLinea} onChange={e => setTransportistaLinea(e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Email del receptor</label>
+              <label className="form-label">Email del transportista</label>
+              <input type="email" className="form-input" placeholder="transportista@ejemplo.com" value={emailTransportistaLinea} onChange={e => setEmailTransportistaLinea(e.target.value)} />
+            </div>
+
+            <button className="btn-agregar" onClick={agregarLinea} disabled={!itemId || cantExcede}>
+              + Agregar al remito
+            </button>
+          </div>
+
+          {/* DATOS GENERALES DEL REMITO */}
+          <div className="form-card">
+            <div className="form-card-title">Datos del remito</div>
+            {successMsg && <div className="form-success">{successMsg}</div>}
+
+            <div className="form-group">
+              <label className="form-label">Base de destino *</label>
+              <select className="form-input" value={baseDestino} onChange={e => { setBaseDestino(e.target.value); setErrorMsg(""); }}>
+                <option value="">Seleccioná base de destino...</option>
+                {basesDestino.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Email receptor en destino</label>
               <input type="email" className="form-input" placeholder="receptor@cleansea.com.ar" value={emailDestino} onChange={e => setEmailDestino(e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Motivo / Observaciones</label>
-              <input type="text" className="form-input" placeholder="Ej: Respuesta emergencia, mantenimiento..." value={motivo} onChange={e => setMotivo(e.target.value)} />
+              <label className="form-label">Observaciones generales</label>
+              <input type="text" className="form-input" placeholder="Ej: Respuesta emergencia, mantenimiento..." value={observaciones} onChange={e => setObservaciones(e.target.value)} />
             </div>
-          </div>
 
-          <button className="btn-primary" onClick={handleSubmit} disabled={saving || !itemId || !baseDestino}>
-            {saving ? "Registrando..." : "Registrar movimiento y generar remito →"}
-          </button>
+            <button className="btn-primary" onClick={handleSubmit} disabled={saving || lineas.length === 0 || !baseDestino}>
+              {saving ? "Generando remito..." : `Confirmar y generar remito (${lineas.length} ítem${lineas.length !== 1 ? "s" : ""}) →`}
+            </button>
+          </div>
         </div>
 
-        <div className="mov-table-wrap">
-          <div className="mov-table-header">
-            <div className="mov-table-title">Historial de movimientos</div>
-            <div className="mov-table-count">{movimientos.length} registros</div>
+        {/* PANEL DERECHO */}
+        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+          {/* CARRITO */}
+          <div className="carrito-wrap">
+            <div className="carrito-header">
+              <div className="carrito-title">Ítems en este remito</div>
+              <div className="carrito-count">{lineas.length} ítem{lineas.length !== 1 ? "s" : ""}</div>
+            </div>
+            {lineas.length === 0
+              ? <div className="carrito-empty">Buscá ítems y agregálos acá</div>
+              : lineas.map((l, idx) => (
+                <div key={idx} className="carrito-item">
+                  <div className="carrito-item-info">
+                    <div className="carrito-item-modelo">#{l.item.item_numero} — {l.item.modelo?.substring(0,40)}</div>
+                    <div className="carrito-item-meta">
+                      {l.item.familia} · Base: {l.baseOrigen} · Cant: {l.cantidad}
+                      {l.transportista && ` · Transp: ${l.transportista}`}
+                    </div>
+                  </div>
+                  <button className="carrito-item-remove" onClick={() => quitarLinea(idx)} title="Quitar del remito">×</button>
+                </div>
+              ))
+            }
           </div>
-          {errorLoad ? <div className="mov-empty" style={{ color:"#991B1B" }}>{errorLoad}</div>
-          : loadingMov ? <div className="mov-empty">Cargando...</div>
-          : movimientos.length === 0 ? <div className="mov-empty">No hay movimientos registrados aún.</div>
-          : (
-            <table className="mov-table">
-              <thead><tr><th>Fecha</th><th>Ítem</th><th>Movimiento</th><th>Cant.</th><th>Motivo</th></tr></thead>
-              <tbody>
-                {movimientos.map(mov => (
-                  <tr key={mov.id}>
-                    <td className="cell-num" style={{ whiteSpace:"nowrap" }}>{fmtDateTime(mov.created_at)}</td>
-                    <td style={{ fontWeight:500 }}>
-                      {mov.inventario_items?.modelo || "—"}
-                      <div style={{ fontSize:10, color:"var(--muted)", marginTop:2 }}>{mov.inventario_items?.familia}{mov.inventario_items?.subtipo ? ` · ${mov.inventario_items.subtipo}` : ""}</div>
-                    </td>
-                    <td><div className="arrow-badge"><strong>{mov.base_origen}</strong><span>→</span><strong style={{ color:"var(--green)" }}>{mov.base_destino}</strong></div></td>
-                    <td className="cell-num" style={{ textAlign:"center" }}>{mov.cantidad}</td>
-                    <td style={{ color:"var(--muted)", fontSize:11 }}>{mov.motivo || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+
+          {/* HISTORIAL */}
+          <div className="mov-table-wrap">
+            <div className="mov-table-header">
+              <div className="mov-table-title">Últimos movimientos</div>
+              <div className="mov-table-count">{movimientos.length} registros</div>
+            </div>
+            {errorLoad ? <div className="mov-empty" style={{ color:"#991B1B" }}>{errorLoad}</div>
+            : loadingMov ? <div className="mov-empty">Cargando...</div>
+            : movimientos.length === 0 ? <div className="mov-empty">No hay movimientos registrados aún.</div>
+            : (
+              <table className="mov-table">
+                <thead><tr><th>Fecha</th><th>Ítem</th><th>Movimiento</th><th>Cant.</th></tr></thead>
+                <tbody>
+                  {movimientos.map(mov => (
+                    <tr key={mov.id}>
+                      <td className="cell-num" style={{ whiteSpace:"nowrap" }}>{fmtDateTime(mov.created_at)}</td>
+                      <td style={{ fontWeight:500 }}>
+                        {mov.inventario_items?.modelo?.substring(0,30) || "—"}
+                        <div style={{ fontSize:10, color:"var(--muted)", marginTop:2 }}>{mov.inventario_items?.familia}</div>
+                      </td>
+                      <td><div className="arrow-badge"><strong>{mov.base_origen}</strong><span>→</span><strong style={{ color:"var(--green)" }}>{mov.base_destino}</strong></div></td>
+                      <td className="cell-num" style={{ textAlign:"center" }}>{mov.cantidad}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
-      {remitoCreado && <ModalRemito remito={remitoCreado} onClose={() => setRemitoCreado(null)} />}
     </div>
+    {remitoCreado && <ModalRemito remito={remitoCreado} onClose={() => setRemitoCreado(null)} />}
   );
 }
 
@@ -958,7 +1112,7 @@ function TabRemitos() {
       setLoading(true);
       try {
         const { data, error } = await supabase.from("inventario_remitos")
-          .select("*, inventario_items(modelo, familia, subtipo, numero_serie)")
+          .select("*, inventario_remito_items(id, cantidad, base_origen, transportista, inventario_items(modelo, familia))")
           .order("created_at", { ascending: false }).limit(200);
         if (error) throw error;
         setRemitos(data || []);
@@ -994,13 +1148,21 @@ function TabRemitos() {
                     <td style={{ fontFamily:"var(--mono)", fontWeight:700, color:"var(--navy)", fontSize:11 }}>{r.numero}</td>
                     <td className="cell-num" style={{ whiteSpace:"nowrap" }}>{fmtDateTime(r.created_at)}</td>
                     <td style={{ fontWeight:500 }}>
-                      {r.inventario_items?.modelo || "—"}
-                      <div style={{ fontSize:10, color:"var(--muted)", marginTop:2 }}>{r.inventario_items?.familia}</div>
+                      {r.inventario_remito_items?.[0]?.inventario_items?.modelo || "—"}
+                      <div style={{ fontSize:10, color:"var(--muted)", marginTop:2 }}>
+                        {r.inventario_remito_items?.length > 1 ? `${r.inventario_remito_items.length} ítems` : r.inventario_remito_items?.[0]?.inventario_items?.familia || "—"}
+                      </div>
                     </td>
-                    <td>{r.base_origen}</td>
+                    <td style={{ fontSize:11, color:"var(--muted)" }}>
+                      {r.inventario_remito_items?.map(l => l.base_origen).filter((v,i,a) => a.indexOf(v)===i).join(", ") || "—"}
+                    </td>
                     <td style={{ color:"var(--green)", fontWeight:500 }}>{r.base_destino}</td>
-                    <td style={{ fontSize:11, color:"var(--muted)" }}>{r.transportista || "—"}</td>
-                    <td className="cell-num" style={{ textAlign:"center" }}>{r.cantidad}</td>
+                    <td style={{ fontSize:11, color:"var(--muted)" }}>
+                      {r.inventario_remito_items?.[0]?.transportista || "—"}
+                    </td>
+                    <td className="cell-num" style={{ textAlign:"center" }}>
+                      {r.inventario_remito_items?.reduce((s, l) => s + (l.cantidad || 0), 0) || "—"}
+                    </td>
                     <td><span className={`badge-remito ${r.estado === "Confirmado" ? "badge-confirmado" : "badge-pendiente"}`}>{r.estado}</span></td>
                     <td style={{ fontSize:11, color:"var(--muted)" }}>
                       {r.confirmado_por ? <span>{r.confirmado_por}<br/><span style={{ fontSize:10 }}>{fmtDateTime(r.confirmado_at)}</span></span> : "—"}
