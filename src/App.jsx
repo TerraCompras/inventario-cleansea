@@ -176,6 +176,13 @@ export default function App() {
     const bot = scrollBottomRef.current;
     if (!top || !bot) return;
 
+    // Ajustar ancho del div fantasma al ancho real de la tabla
+    const table = bot.querySelector("table");
+    if (table) {
+      const inner = top.querySelector(".scroll-top-bar-inner");
+      if (inner) inner.style.width = table.scrollWidth + "px";
+    }
+
     const onTopScroll = () => {
       if (syncingRef.current) return;
       syncingRef.current = true;
@@ -195,7 +202,7 @@ export default function App() {
       top.removeEventListener("scroll", onTopScroll);
       bot.removeEventListener("scroll", onBotScroll);
     };
-  }, []);
+  }, [pageItems]);
 
   const loadItems = async () => {
     setLoading(true);
