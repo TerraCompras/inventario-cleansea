@@ -106,8 +106,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 }
 .clear-btn:hover { background: #F0F4F8; }
 
-.scroll-top-bar { overflow-x: auto; width: 100%; background: var(--surface); border-top: 1px solid var(--border); }
-.scroll-top-bar-inner { height: 12px; }
 .table-outer { overflow-x: auto; width: 100%; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 table { min-width: 1300px; width: 100%; border-collapse: collapse; }
 thead { background: #F8FAFC; }
@@ -215,31 +213,6 @@ export default function App() {
     setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1);
   };
 
-  // Listeners de scroll — solo se registran una vez al montar
-  useEffect(() => {
-    const top = document.getElementById("inv-scroll-top");
-    const bot = document.getElementById("inv-scroll-bot");
-    if (!top || !bot) return;
-    let syncing = false;
-    const onTopScroll = () => { if (syncing) return; syncing = true; bot.scrollLeft = top.scrollLeft; syncing = false; };
-    const onBotScroll = () => { if (syncing) return; syncing = true; top.scrollLeft = bot.scrollLeft; syncing = false; };
-    top.addEventListener("scroll", onTopScroll);
-    bot.addEventListener("scroll", onBotScroll);
-    return () => {
-      top.removeEventListener("scroll", onTopScroll);
-      bot.removeEventListener("scroll", onBotScroll);
-    };
-  }, []);
-
-  // Ajustar ancho del div fantasma cuando cambia la cantidad de items visibles
-  useEffect(() => {
-    const bot = document.getElementById("inv-scroll-bot");
-    const inner = document.getElementById("inv-scroll-top-inner");
-    if (!bot || !inner) return;
-    const tbl = bot.querySelector("table");
-    if (tbl) inner.style.width = tbl.scrollWidth + "px";
-  }, [pageItems.length, filtered.length]);
-
 
 
   if (loading) return (
@@ -343,10 +316,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Barra de scroll superior sincronizada */}
-      <div className="scroll-top-bar" id="inv-scroll-top">
-        <div className="scroll-top-bar-inner" id="inv-scroll-top-inner" style={{ minWidth: 1300 }} />
-      </div>
 
       <div className="table-outer" id="inv-scroll-bot">
         <table>
