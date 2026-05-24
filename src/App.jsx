@@ -856,6 +856,7 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
   };
 
   return (
+    <>
     <div className="mov-content">
       <div className="section-label">Movimientos de equipamiento</div>
       <div style={{ display:"grid", gridTemplateColumns:"420px 1fr", gap:24, alignItems:"start" }}>
@@ -1032,6 +1033,7 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
       </div>
     </div>
     {remitoCreado && <ModalRemito remito={remitoCreado} onClose={() => setRemitoCreado(null)} />}
+    </>
   );
 }
 
