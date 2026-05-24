@@ -52,7 +52,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 
 .hero {
   background: linear-gradient(135deg, var(--navy) 0%, #1a2a5e 50%, #0f3d38 100%);
-  padding: 40px 40px 36px; position: relative; overflow: hidden;
+  padding: 40px 40px 0; position: relative; overflow: hidden;
 }
 .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; border-radius: 50%; background: rgba(26,122,110,.2); pointer-events: none; }
 .hero-content { position: relative; z-index: 1; }
@@ -60,7 +60,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .hero-title { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 24px; }
 .hero-title span { color: #6EE7DE; }
 
-.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 28px; }
 @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
 .kpi { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 16px 20px; }
 .kpi-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: rgba(255,255,255,.45); text-transform: uppercase; margin-bottom: 8px; }
@@ -70,6 +70,16 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .kpi.red   .kpi-value { color: #FCA5A5; }
 .kpi.yellow .kpi-value { color: #FCD34D; }
 .kpi.blue  .kpi-value { color: #93C5FD; }
+
+/* TABS */
+.tabs { display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,.1); position: relative; z-index: 1; }
+.tab-btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .3px;
+  padding: 14px 28px; background: none; border: none; color: rgba(255,255,255,.5);
+  cursor: pointer; transition: all .15s; border-bottom: 3px solid transparent;
+}
+.tab-btn:hover { color: rgba(255,255,255,.8); }
+.tab-btn.active { color: #6EE7DE; border-bottom-color: #6EE7DE; }
 
 .content-top { padding: 32px 40px 20px; }
 .section-label {
@@ -81,6 +91,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .toolbar {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 16px 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  margin-bottom: 0;
 }
 .search-box {
   flex: 1; min-width: 220px; padding: 8px 14px; border: 1px solid var(--border);
@@ -148,23 +159,427 @@ tr:hover td { background: #F8FAFC; }
 .page-btn:disabled { opacity: .4; cursor: not-allowed; }
 .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
+/* MOVIMIENTOS */
+.mov-content { padding: 32px 40px 60px; }
+.mov-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 900px) { .mov-grid { grid-template-columns: 1fr; } }
+
+.form-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; display: flex; flex-direction: column; gap: 16px;
+}
+.form-card-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+.form-input {
+  padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--sans); font-size: 12px; color: var(--text);
+  outline: none; transition: border-color .15s; background: #fff;
+}
+.form-input:focus { border-color: var(--blue); }
+.form-input:disabled { background: #F8FAFC; color: var(--muted); cursor: not-allowed; }
+.form-hint { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.btn-primary {
+  width: 100%; padding: 11px; background: var(--green); color: #fff; border: none;
+  border-radius: 8px; font-family: var(--sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background .15s; letter-spacing: .3px;
+}
+.btn-primary:hover { background: #156057; }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.form-success { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
+.form-error   { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
+
+.mov-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.mov-table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.mov-table-title { font-size: 13px; font-weight: 700; color: var(--navy); }
+.mov-table-count { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.mov-table { width: 100%; border-collapse: collapse; }
+.mov-table th { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); background: #F8FAFC; white-space: nowrap; }
+.mov-table td { padding: 11px 16px; border-bottom: 1px solid #F0F4F8; font-size: 12px; color: var(--text); vertical-align: middle; }
+.mov-table tr:last-child td { border-bottom: none; }
+.mov-table tr:hover td { background: #F8FAFC; }
+.arrow-badge { font-family: var(--mono); font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.arrow-badge strong { color: var(--navy); }
+.mov-empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+
 .loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
 .loading-text { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: 2px; text-transform: uppercase; }
 .empty { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 13px; }
 `;
 
+// ─── TAB INVENTARIO ───────────────────────────────────────────────────────────
+function TabInventario({ items }) {
+  const [search, setSearch]     = useState("");
+  const [filtCat, setFiltCat]   = useState("");
+  const [filtBase, setFiltBase] = useState("");
+  const [filtEst, setFiltEst]   = useState("");
+  const [page, setPage]         = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
+  useEffect(() => { setPage(1); }, [search, filtCat, filtBase, filtEst, pageSize]);
+
+  const filtered = items.filter(it => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || [it.modelo, it.fabricante, it.comentarios, it.terminal, it.ubicacion, it.numero_serie, String(it.item_numero || "")]
+      .some(f => f && String(f).toLowerCase().includes(q));
+    const matchCat  = !filtCat  || it.categoria === filtCat;
+    const matchBase = !filtBase || it.ubicacion === filtBase;
+    const matchEst  = !filtEst  || it.estado === filtEst;
+    return matchSearch && matchCat && matchBase && matchEst;
+  });
+
+  const categorias = [...new Set(items.map(i => i.categoria).filter(Boolean))].sort();
+  const bases      = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
+  const estados    = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
+
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const pageItems  = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  const clearFilters = () => { setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1); };
+
+  return (
+    <>
+      <div className="content-top">
+        <div className="section-label">Inventario completo</div>
+        <div className="toolbar">
+          <input
+            className="search-box"
+            placeholder="Buscar por #, modelo, fabricante, base, Nº serie, terminal..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <select className="filter-select" value={filtBase} onChange={e => setFiltBase(e.target.value)}>
+            <option value="">Todas las bases</option>
+            {bases.map(b => <option key={b} value={b}>{b}</option>)}
+          </select>
+          <select className="filter-select" value={filtCat} onChange={e => setFiltCat(e.target.value)}>
+            <option value="">Todas las categorías</option>
+            {categorias.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select className="filter-select" value={filtEst} onChange={e => setFiltEst(e.target.value)}>
+            <option value="">Todos los estados</option>
+            {estados.map(est => <option key={est} value={est}>{est}</option>)}
+          </select>
+          <div className="toolbar-right">
+            <span className="count-badge">{filtered.length} resultados</span>
+            <select className="filter-select" style={{ minWidth: 120 }} value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
+              {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} por página</option>)}
+            </select>
+            {(search || filtCat || filtBase || filtEst) &&
+              <button className="clear-btn" onClick={clearFilters}>Limpiar filtros</button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div className="table-outer">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Categoría</th>
+              <th>Base</th>
+              <th>Fabricante</th>
+              <th>Modelo / Descripción</th>
+              <th>Nº Serie</th>
+              <th>Cant.</th>
+              <th>Metros</th>
+              <th>Condición</th>
+              <th>Estado</th>
+              <th>Terminal</th>
+              <th>Comentarios</th>
+              <th>Foto</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pageItems.length === 0 && (
+              <tr><td colSpan={13} className="empty">No se encontraron resultados</td></tr>
+            )}
+            {pageItems.map(it => {
+              const estCol = ESTADOS_COLOR[it.estado] || { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" };
+              const catCol = CATEGORIAS_COLOR[it.categoria] || "#4B5563";
+              return (
+                <tr key={it.id}>
+                  <td className="cell-num">{it.item_numero ?? "—"}</td>
+                  <td>
+                    <span className="badge-cat" style={{ background: `${catCol}18`, color: catCol, border: `1px solid ${catCol}30` }}>
+                      {it.categoria || "—"}
+                    </span>
+                  </td>
+                  <td style={{ fontWeight: 500 }}>{it.ubicacion || "—"}</td>
+                  <td style={{ color: "var(--muted)" }}>{it.fabricante || "—"}</td>
+                  <td className="cell-modelo">{it.modelo || "—"}</td>
+                  <td className="cell-num">{it.numero_serie || "—"}</td>
+                  <td className="cell-num" style={{ textAlign: "center" }}>{it.cantidad ?? "—"}</td>
+                  <td className="cell-num" style={{ textAlign: "center" }}>{it.metros != null ? `${it.metros}m` : "—"}</td>
+                  <td style={{ color: "var(--muted)", fontSize: 11 }}>{it.condicion || "—"}</td>
+                  <td>
+                    <span className="badge-estado" style={{ background: estCol.bg, color: estCol.color, border: `1px solid ${estCol.border}` }}>
+                      {it.estado || "—"}
+                    </span>
+                  </td>
+                  <td style={{ fontSize: 11 }}>{it.terminal || "—"}</td>
+                  <td className="cell-comentarios" title={it.comentarios}>{it.comentarios || "—"}</td>
+                  <td>
+                    {it.foto_url
+                      ? <a className="foto-link" href={it.foto_url} target="_blank" rel="noreferrer">Ver →</a>
+                      : <span style={{ color: "var(--muted)", fontSize: 11 }}>—</span>
+                    }
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <span className="page-info">
+            Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} de {filtered.length}
+          </span>
+          <div className="page-btns">
+            <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>← Anterior</button>
+            {(() => {
+              const pgNums = [];
+              const pgLeft  = Math.max(2, page - 2);
+              const pgRight = Math.min(totalPages - 1, page + 2);
+              pgNums.push(1);
+              if (pgLeft > 2) pgNums.push("dots-l");
+              for (let n = pgLeft; n <= pgRight; n++) pgNums.push(n);
+              if (pgRight < totalPages - 1) pgNums.push("dots-r");
+              if (totalPages > 1) pgNums.push(totalPages);
+              return pgNums.map(p =>
+                typeof p === "string"
+                  ? <span key={p} style={{ padding: "5px 4px", fontSize: 11, color: "var(--muted)" }}>…</span>
+                  : <button key={p} className={"page-btn" + (page === p ? " active" : "")} onClick={() => setPage(p)}>{p}</button>
+              );
+            })()}
+            <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>Siguiente →</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── TAB MOVIMIENTOS ──────────────────────────────────────────────────────────
+function TabMovimientos({ items, onMovimientoCreado }) {
+  const [movimientos, setMovimientos] = useState([]);
+  const [loadingMov, setLoadingMov]   = useState(true);
+  const [saving, setSaving]           = useState(false);
+  const [successMsg, setSuccessMsg]   = useState("");
+  const [errorMsg, setErrorMsg]       = useState("");
+  const [errorLoad, setErrorLoad]     = useState("");
+
+  const [itemId, setItemId]           = useState("");
+  const [cantidadMov, setCantidadMov] = useState(1);
+  const [baseDestino, setBaseDestino] = useState("");
+  const [motivo, setMotivo]           = useState("");
+
+  useEffect(() => { loadMovimientos(); }, []);
+
+  const loadMovimientos = async () => {
+    setLoadingMov(true);
+    try {
+      const { data, error } = await supabase
+        .from("inventario_movimientos")
+        .select("*, inventario_items(modelo, categoria, ubicacion)")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      setMovimientos(data || []);
+    } catch (e) {
+      setErrorLoad("Error al cargar el historial: " + e.message);
+    } finally {
+      setLoadingMov(false);
+    }
+  };
+
+  const itemSeleccionado = items.find(i => i.id === itemId);
+  const bases = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
+  const maxCantidad = itemSeleccionado
+    ? (itemSeleccionado.numero_serie ? 1 : (itemSeleccionado.cantidad || 1))
+    : 1;
+
+  const handleSubmit = async () => {
+    if (!itemId) { setErrorMsg("Seleccioná un ítem."); return; }
+    if (!baseDestino) { setErrorMsg("Seleccioná la base de destino."); return; }
+    if (baseDestino === itemSeleccionado.ubicacion) { setErrorMsg("La base de destino no puede ser la misma que la de origen."); return; }
+    if (cantidadMov < 1 || cantidadMov > maxCantidad) { setErrorMsg(`La cantidad debe ser entre 1 y ${maxCantidad}.`); return; }
+
+    // Snapshot para evitar stale closure si items cambia durante el await
+    const snapId       = itemId;
+    const snapOrigen   = itemSeleccionado.ubicacion;
+    const snapModelo   = itemSeleccionado.modelo;
+    const snapCantidad = cantidadMov;
+    const snapMotivo   = motivo;
+
+    setSaving(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      // 1. Actualizar ubicación primero (estado real del ítem)
+      const { error: errItem } = await supabase
+        .from("inventario_items")
+        .update({ ubicacion: baseDestino })
+        .eq("id", snapId);
+      if (errItem) throw errItem;
+
+      // 2. Registrar en historial (trazabilidad)
+      const { error: errMov } = await supabase.from("inventario_movimientos").insert({
+        item_id: snapId,
+        base_origen: snapOrigen,
+        base_destino: baseDestino,
+        cantidad: snapCantidad,
+        motivo: snapMotivo || null,
+        usuario: "sistema",
+      });
+      if (errMov) throw errMov;
+
+      setSuccessMsg(`✓ Movimiento registrado: ${snapModelo} → ${baseDestino}`);
+      setItemId(""); setCantidadMov(1); setBaseDestino(""); setMotivo("");
+      await loadMovimientos();
+      onMovimientoCreado();
+    } catch (e) {
+      setErrorMsg("Error al registrar movimiento: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mov-content">
+      <div className="section-label">Movimientos de equipamiento</div>
+      <div className="mov-grid">
+
+        {/* FORMULARIO */}
+        <div className="form-card">
+          <div className="form-card-title">Registrar movimiento</div>
+
+          {successMsg && <div className="form-success">{successMsg}</div>}
+          {errorMsg   && <div className="form-error">{errorMsg}</div>}
+
+          <div className="form-group">
+            <label className="form-label">Ítem a mover</label>
+            <select className="form-input" value={itemId} onChange={e => { setItemId(e.target.value); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }}>
+              <option value="">Seleccioná un ítem...</option>
+              {items.filter(i => i.estado === "Disponible" || i.estado === "En uso").map(i => (
+                <option key={i.id} value={i.id}>
+                  #{i.item_numero} — {i.modelo} ({i.ubicacion})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {itemSeleccionado && (
+            <div style={{ background: "#F0F4F8", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", fontSize: 11 }}>
+              <div style={{ fontWeight: 700, color: "var(--navy)", marginBottom: 4 }}>{itemSeleccionado.modelo}</div>
+              <div style={{ color: "var(--muted)" }}>Base actual: <strong style={{ color: "var(--navy)" }}>{itemSeleccionado.ubicacion}</strong></div>
+              <div style={{ color: "var(--muted)" }}>Estado: {itemSeleccionado.estado}</div>
+              {itemSeleccionado.numero_serie && <div style={{ color: "var(--muted)" }}>Nº Serie: {itemSeleccionado.numero_serie}</div>}
+            </div>
+          )}
+
+          <div className="form-group">
+            <label className="form-label">Base de destino</label>
+            <select className="form-input" value={baseDestino} onChange={e => { setBaseDestino(e.target.value); setErrorMsg(""); setSuccessMsg(""); }}>
+              <option value="">Seleccioná base de destino...</option>
+              {bases.filter(b => b !== itemSeleccionado?.ubicacion).map(b => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Cantidad</label>
+            <input
+              type="number" className="form-input"
+              min={1} max={maxCantidad} value={cantidadMov}
+              onChange={e => setCantidadMov(Number(e.target.value))}
+              disabled={itemSeleccionado?.numero_serie}
+            />
+            {itemSeleccionado?.numero_serie
+              ? <span className="form-hint">Ítem único — cantidad fija en 1</span>
+              : itemSeleccionado && <span className="form-hint">Máximo disponible: {maxCantidad}</span>
+            }
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Motivo (opcional)</label>
+            <input
+              type="text" className="form-input"
+              placeholder="Ej: Respuesta emergencia, rotación de stock..."
+              value={motivo}
+              onChange={e => setMotivo(e.target.value)}
+            />
+          </div>
+
+          <button className="btn-primary" onClick={handleSubmit} disabled={saving || !itemId || !baseDestino}>
+            {saving ? "Registrando..." : "Registrar movimiento →"}
+          </button>
+        </div>
+
+        {/* HISTORIAL */}
+        <div className="mov-table-wrap">
+          <div className="mov-table-header">
+            <div className="mov-table-title">Historial de movimientos</div>
+            <div className="mov-table-count">{movimientos.length} registros</div>
+          </div>
+          {errorLoad ? (
+            <div className="mov-empty" style={{ color: "#991B1B" }}>{errorLoad}</div>
+          ) : loadingMov ? (
+            <div className="mov-empty">Cargando...</div>
+          ) : movimientos.length === 0 ? (
+            <div className="mov-empty">No hay movimientos registrados aún.</div>
+          ) : (
+            <table className="mov-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Ítem</th>
+                  <th>Movimiento</th>
+                  <th>Cant.</th>
+                  <th>Motivo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {movimientos.map(mov => (
+                  <tr key={mov.id}>
+                    <td className="cell-num" style={{ whiteSpace: "nowrap" }}>
+                      {new Date(mov.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </td>
+                    <td style={{ fontWeight: 500 }}>
+                      {mov.inventario_items?.modelo || "—"}
+                      <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{mov.inventario_items?.categoria}</div>
+                    </td>
+                    <td>
+                      <div className="arrow-badge">
+                        <strong>{mov.base_origen}</strong>
+                        <span>→</span>
+                        <strong style={{ color: "var(--green)" }}>{mov.base_destino}</strong>
+                      </div>
+                    </td>
+                    <td className="cell-num" style={{ textAlign: "center" }}>{mov.cantidad}</td>
+                    <td style={{ color: "var(--muted)", fontSize: 11 }}>{mov.motivo || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
 export default function App() {
   const [items, setItems]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [search, setSearch]       = useState("");
-  const [filtCat, setFiltCat]     = useState("");
-  const [filtBase, setFiltBase]   = useState("");
-  const [filtEst, setFiltEst]     = useState("");
-  const [page, setPage]           = useState(1);
-  const [pageSize, setPageSize]   = useState(50);
-
-
+  const [tab, setTab]             = useState("inventario");
 
   const loadItems = async () => {
     setLoading(true);
@@ -184,36 +599,12 @@ export default function App() {
   };
 
   useEffect(() => { loadItems(); }, []);
-  useEffect(() => { setPage(1); }, [search, filtCat, filtBase, filtEst, pageSize]);
-
-  const filtered = items.filter(it => {
-    const q = search.toLowerCase();
-    const matchSearch = !q || [it.modelo, it.fabricante, it.comentarios, it.terminal]
-      .some(f => f && f.toLowerCase().includes(q));
-    const matchCat  = !filtCat  || it.categoria === filtCat;
-    const matchBase = !filtBase || it.ubicacion === filtBase;
-    const matchEst  = !filtEst  || it.estado === filtEst;
-    return matchSearch && matchCat && matchBase && matchEst;
-  });
 
   const total       = items.length;
   const disponibles = items.filter(i => i.estado === "Disponible").length;
   const enUso       = items.filter(i => i.estado === "En uso").length;
   const fueraServ   = items.filter(i => i.estado === "Fuera de servicio").length;
   const faltaMant   = items.filter(i => i.estado === "Falta mantenimiento").length;
-
-  const categorias  = [...new Set(items.map(i => i.categoria).filter(Boolean))].sort();
-  const bases       = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
-  const estados     = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
-
-  const totalPages  = Math.ceil(filtered.length / pageSize);
-  const pageItems   = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  const clearFilters = () => {
-    setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1);
-  };
-
-
 
   if (loading) return (
     <div className="loading">
@@ -280,128 +671,21 @@ export default function App() {
               <div className="kpi-sub">no operativos</div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="content-top">
-        <div className="section-label">Inventario completo</div>
-        <div className="toolbar">
-          <input
-            className="search-box"
-            placeholder="Buscar por modelo, fabricante, terminal, comentarios..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          <select className="filter-select" value={filtBase} onChange={e => setFiltBase(e.target.value)}>
-            <option value="">Todas las bases</option>
-            {bases.map(b => <option key={b} value={b}>{b}</option>)}
-          </select>
-          <select className="filter-select" value={filtCat} onChange={e => setFiltCat(e.target.value)}>
-            <option value="">Todas las categorías</option>
-            {categorias.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select className="filter-select" value={filtEst} onChange={e => setFiltEst(e.target.value)}>
-            <option value="">Todos los estados</option>
-            {estados.map(est => <option key={est} value={est}>{est}</option>)}
-          </select>
-          <div className="toolbar-right">
-            <span className="count-badge">{filtered.length} resultados</span>
-            <select className="filter-select" style={{ minWidth: 120 }} value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-              {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} por página</option>)}
-            </select>
-            {(search || filtCat || filtBase || filtEst) &&
-              <button className="clear-btn" onClick={clearFilters}>Limpiar filtros</button>
-            }
+          <div className="tabs">
+            <button className={"tab-btn" + (tab === "inventario" ? " active" : "")} onClick={() => setTab("inventario")}>
+              📦 Inventario
+            </button>
+            <button className={"tab-btn" + (tab === "movimientos" ? " active" : "")} onClick={() => setTab("movimientos")}>
+              🔄 Movimientos
+            </button>
           </div>
         </div>
       </div>
 
-
-      <div className="table-outer" id="inv-scroll-bot">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Categoría</th>
-              <th>Base</th>
-              <th>Fabricante</th>
-              <th>Modelo / Descripción</th>
-              <th>Cant.</th>
-              <th>Metros</th>
-              <th>Condición</th>
-              <th>Estado</th>
-              <th>Terminal</th>
-              <th>Comentarios</th>
-              <th>Foto</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageItems.length === 0 && (
-              <tr><td colSpan={12} className="empty">No se encontraron resultados</td></tr>
-            )}
-            {pageItems.map(it => {
-              const estCol = ESTADOS_COLOR[it.estado] || { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" };
-              const catCol = CATEGORIAS_COLOR[it.categoria] || "#4B5563";
-              return (
-                <tr key={it.id}>
-                  <td className="cell-num">{it.item_numero ?? "—"}</td>
-                  <td>
-                    <span className="badge-cat" style={{ background: `${catCol}18`, color: catCol, border: `1px solid ${catCol}30` }}>
-                      {it.categoria || "—"}
-                    </span>
-                  </td>
-                  <td style={{ fontWeight: 500 }}>{it.ubicacion || "—"}</td>
-                  <td style={{ color: "var(--muted)" }}>{it.fabricante || "—"}</td>
-                  <td className="cell-modelo">{it.modelo || "—"}</td>
-                  <td className="cell-num" style={{ textAlign: "center" }}>{it.cantidad ?? "—"}</td>
-                  <td className="cell-num" style={{ textAlign: "center" }}>{it.metros != null ? `${it.metros}m` : "—"}</td>
-                  <td style={{ color: "var(--muted)", fontSize: 11 }}>{it.condicion || "—"}</td>
-                  <td>
-                    <span className="badge-estado" style={{ background: estCol.bg, color: estCol.color, border: `1px solid ${estCol.border}` }}>
-                      {it.estado || "—"}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: 11 }}>{it.terminal || "—"}</td>
-                  <td className="cell-comentarios" title={it.comentarios}>{it.comentarios || "—"}</td>
-                  <td>
-                    {it.foto_url
-                      ? <a className="foto-link" href={it.foto_url} target="_blank" rel="noreferrer">Ver foto →</a>
-                      : <span style={{ color: "var(--muted)", fontSize: 11 }}>—</span>
-                    }
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="pagination">
-          <span className="page-info">
-            Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} de {filtered.length}
-          </span>
-          <div className="page-btns">
-            <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>← Anterior</button>
-            {(() => {
-              const pgNums = [];
-              const pgLeft  = Math.max(2, page - 2);
-              const pgRight = Math.min(totalPages - 1, page + 2);
-              pgNums.push(1);
-              if (pgLeft > 2) pgNums.push("dots-l");
-              for (let n = pgLeft; n <= pgRight; n++) pgNums.push(n);
-              if (pgRight < totalPages - 1) pgNums.push("dots-r");
-              if (totalPages > 1) pgNums.push(totalPages);
-              return pgNums.map(p =>
-                typeof p === "string"
-                  ? <span key={p} style={{ padding: "5px 4px", fontSize: 11, color: "var(--muted)" }}>…</span>
-                  : <button key={p} className={"page-btn" + (page === p ? " active" : "")} onClick={() => setPage(p)}>{p}</button>
-              );
-            })()}
-            <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>Siguiente →</button>
-          </div>
-        </div>
-      )}
+      {tab === "inventario"
+        ? <TabInventario items={items} />
+        : <TabMovimientos items={items} onMovimientoCreado={loadItems} />
+      }
     </>
   );
 }
