@@ -1044,4 +1044,137 @@ function TabMantenimiento({ items }) {
                 <tr key={it.id}>
                   <td className="cell-num">{it.item_numero ?? "—"}</td>
                   <td><span className="badge-fam" style={{ background:`${famCol}18`, color:famCol, border:`1px solid ${famCol}30` }}>{it.familia || "—"}</span></td>
-             
+                               <td style={{ fontWeight:500, maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.modelo || "—"}</td>
+                  <td>{it.ubicacion || "—"}</td>
+                  <td style={{ fontFamily:"var(--mono)", fontSize:11, color: dias !== null && dias < 0 ? "#EF4444" : dias !== null && dias <= 30 ? "#F59E0B" : "var(--text)" }}>{fmtFecha(it.fecha_proximo_mantenimiento)}</td>
+                  <td style={{ fontFamily:"var(--mono)", fontSize:11, color:"var(--muted)" }}>{fmtFecha(it.fecha_ultimo_mantenimiento)}</td>
+                  <td style={{ fontFamily:"var(--mono)", fontSize:11, fontWeight:700, color: dias !== null && dias < 0 ? "#EF4444" : dias !== null && dias <= 30 ? "#F59E0B" : "#10B981" }}>
+                    {dias !== null ? (dias < 0 ? `${Math.abs(dias)}d vencido` : `${dias}d`) : "—"}
+                  </td>
+                  <td style={{ fontSize:11, color:"var(--muted)", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.notas_mantenimiento || "—"}</td>
+                  <td><span className="badge-estado" style={{ background:estCol.bg, color:estCol.color, border:`1px solid ${estCol.border}` }}>{it.estado || "—"}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="hist-content">
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:32 }}>
+        <div style={{ background:"#FEE2E2", border:"1px solid #FECACA", borderRadius:12, padding:"16px 20px" }}>
+          <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#991B1B", textTransform:"uppercase", marginBottom:8 }}>Vencidos</div>
+          <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#EF4444" }}>{vencidos.length}</div>
+          <div style={{ fontSize:10, color:"#991B1B", marginTop:4 }}>requieren atención inmediata</div>
+        </div>
+        <div style={{ background:"#FEF3C7", border:"1px solid #FDE68A", borderRadius:12, padding:"16px 20px" }}>
+          <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#92400E", textTransform:"uppercase", marginBottom:8 }}>Próximos 30 días</div>
+          <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#F59E0B" }}>{proximos.length}</div>
+          <div style={{ fontSize:10, color:"#92400E", marginTop:4 }}>programar mantenimiento</div>
+        </div>
+        <div style={{ background:"#D1FAE5", border:"1px solid #A7F3D0", borderRadius:12, padding:"16px 20px" }}>
+          <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#065F46", textTransform:"uppercase", marginBottom:8 }}>Al día</div>
+          <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#10B981" }}>{okItems.length}</div>
+          <div style={{ fontSize:10, color:"#065F46", marginTop:4 }}>más de 30 días restantes</div>
+        </div>
+        <div style={{ background:"#F3F4F6", border:"1px solid #E5E7EB", borderRadius:12, padding:"16px 20px" }}>
+          <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#6B7280", textTransform:"uppercase", marginBottom:8 }}>Sin fecha</div>
+          <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#9CA3AF" }}>{sinFecha.length}</div>
+          <div style={{ fontSize:10, color:"#6B7280", marginTop:4 }}>sin planificación</div>
+        </div>
+      </div>
+      {seccion("🔴 Vencidos", vencidos, "#EF4444", "#FEE2E2")}
+      {seccion("🟡 Próximos 30 días", proximos, "#F59E0B", "#FEF3C7")}
+      {seccion("🟢 Al día", okItems, "#10B981", "#D1FAE5")}
+    </div>
+  );
+}
+
+// ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
+export default function App() {
+  const [items, setItems]         = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [tab, setTab]             = useState("inventario");
+  const [usuario, setUsuario]     = useState("sistema");
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) setUsuario(session.user.email);
+    });
+  }, []);
+
+  const loadItems = async () => {
+    setLoading(true); setLoadError("");
+    try {
+      const { data, error } = await supabase.from("inventario_items").select("*").order("item_numero", { ascending: true });
+      if (error) throw error;
+      setItems(data || []);
+    } catch (e) { setLoadError("Error al cargar el inventario: " + e.message); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { loadItems(); }, []);
+
+  const total       = items.length;
+  const disponibles = items.filter(i => i.estado === "Disponible").length;
+  const enUso       = items.filter(i => i.estado === "En uso").length;
+  const fueraServ   = items.filter(i => i.estado === "Fuera de servicio").length;
+  const faltaMant   = items.filter(i => i.estado === "Falta mantenimiento").length;
+
+  if (loading)   return <div className="loading"><style>{CSS}</style><div className="loading-text">Cargando inventario...</div></div>;
+  if (loadError) return (
+    <div className="loading"><style>{CSS}</style>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontFamily:"var(--mono)", fontSize:11, color:"#FCA5A5", letterSpacing:1, marginBottom:16 }}>{loadError}</div>
+        <button onClick={loadItems} style={{ fontFamily:"var(--sans)", fontSize:12, padding:"8px 20px", borderRadius:8, border:"1px solid rgba(255,255,255,.2)", background:"rgba(255,255,255,.1)", color:"#fff", cursor:"pointer" }}>Reintentar</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <style>{CSS}</style>
+      <header className="header">
+        <div className="header-brand">
+          <img src="/CS.png" alt="Clean Sea" className="header-logo" />
+          <div>
+            <div className="header-main">Clean Sea · Inventario</div>
+            <div className="header-sub">Equipamiento de respuesta a derrames</div>
+          </div>
+        </div>
+        <button className="back-btn" onClick={() => window.open(PORTAL_URL, "_self")}>← Volver al portal</button>
+      </header>
+
+      <div className="hero">
+        <div className="hero-content">
+          <div className="hero-eyebrow">Sistema de inventario</div>
+          <h1 className="hero-title">Equipamiento <span>operativo</span></h1>
+          <div className="kpis">
+            <div className="kpi"><div className="kpi-label">Total ítems</div><div className="kpi-value">{total}</div><div className="kpi-sub">registros activos</div></div>
+            <div className="kpi green"><div className="kpi-label">Disponibles</div><div className="kpi-value">{disponibles}</div><div className="kpi-sub">{total ? Math.round(disponibles/total*100) : 0}%</div></div>
+            <div className="kpi blue"><div className="kpi-label">En uso</div><div className="kpi-value">{enUso}</div><div className="kpi-sub">desplegados</div></div>
+            <div className="kpi yellow"><div className="kpi-label">Falta mant.</div><div className="kpi-value">{faltaMant}</div><div className="kpi-sub">requieren atención</div></div>
+            <div className="kpi red"><div className="kpi-label">Fuera servicio</div><div className="kpi-value">{fueraServ}</div><div className="kpi-sub">no operativos</div></div>
+          </div>
+          <div className="tabs">
+            <button className={"tab-btn"+(tab==="inventario"?" active":"")} onClick={()=>setTab("inventario")}>📦 Inventario</button>
+            <button className={"tab-btn"+(tab==="movimientos"?" active":"")} onClick={()=>setTab("movimientos")}>🔄 Movimientos</button>
+            <button className={"tab-btn"+(tab==="remitos"?" active":"")} onClick={()=>setTab("remitos")}>📄 Remitos</button>
+            <button className={"tab-btn"+(tab==="historial"?" active":"")} onClick={()=>setTab("historial")}>📋 Historial</button>
+            <button className={"tab-btn"+(tab==="mantenimiento"?" active":"")} onClick={()=>setTab("mantenimiento")}>🔧 Mantenimiento</button>
+          </div>
+        </div>
+      </div>
+
+      {tab === "inventario"    && <TabInventario   items={items} onReload={loadItems} usuario={usuario} />}
+      {tab === "movimientos"   && <TabMovimientos  items={items} onMovimientoCreado={loadItems} usuario={usuario} />}
+      {tab === "remitos"       && <TabRemitos />}
+      {tab === "historial"     && <TabHistorial />}
+      {tab === "mantenimiento" && <TabMantenimiento items={items} />}
+    </>
+  );
+}
