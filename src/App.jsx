@@ -784,12 +784,13 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
 
   const quitarLinea = (idx) => setLineas(prev => prev.filter((_, i) => i !== idx));
 
-  const generarNumero = async () => {
-    const prefix = "CS-REM-";
+  const generarNumero = async (destino) => {
+    const cod = codigoBase(destino);
+    const prefix = `CS-${cod}-`;
     const { data } = await supabase.from("inventario_remitos").select("numero")
       .ilike("numero", `${prefix}%`).order("created_at", { ascending: false }).limit(1);
     const last = (data && data.length > 0) ? (parseInt(data[0].numero.split("-").pop()) || 0) : 0;
-    return `${prefix}${String(last + 1).padStart(4, "0")}`;
+    return `${prefix}${String(last + 1).padStart(3, "0")}`;
   };
 
   const handleSubmit = async () => {
@@ -801,7 +802,7 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
     setSaving(true); setErrorMsg(""); setSuccessMsg("");
     try {
       // 1. Generar número de remito
-      let numero = await generarNumero();
+      let numero = await generarNumero(baseDestino);
       let remData, e3;
       for (let intento = 0; intento < 3; intento++) {
         ({ data: remData, error: e3 } = await supabase.from("inventario_remitos")
@@ -810,7 +811,8 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
         if (!e3) break;
         if (e3.code === "23505") {
           const n = parseInt(numero.split("-").pop()) || 0;
-          numero = `CS-REM-${String(n + 1).padStart(4, "0")}`;
+          const pfx = numero.substring(0, numero.lastIndexOf("-") + 1);
+          numero = `${pfx}${String(n + 1).padStart(3, "0")}`;
         } else break;
       }
       if (e3) throw e3;
