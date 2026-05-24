@@ -10,14 +10,25 @@ const ESTADOS_COLOR = {
   "Falta mantenimiento": { bg: "#FEF3C7", color: "#92400E", border: "#FDE68A" },
 };
 
-const CATEGORIAS_COLOR = {
-  "Barreras":       "#1A7A6E",
-  "Bombas":         "#235C96",
-  "Absorbente":     "#7C3AED",
-  "Almacenamiento": "#854F0B",
-  "Skimmers":       "#0E7490",
-  "Mangueras":      "#C05621",
-  "Otros":          "#4B5563",
+const FAMILIA_COLOR = {
+  "Barrera de Contención":    "#1A7A6E",
+  "Barrera de Contencion":    "#1A7A6E",
+  "Bomba":                    "#235C96",
+  "Manguera":                 "#C05621",
+  "Skimmer":                  "#0E7490",
+  "Absorbente":               "#7C3AED",
+  "Tanque / Almacenamiento":  "#854F0B",
+  "Power Pack":               "#B45309",
+  "Seguridad / EPP":          "#DC2626",
+  "Maniobra":                 "#1D4ED8",
+  "Infraestructura":          "#374151",
+  "Equipamiento limpieza":    "#059669",
+  "Herramienta / Util":       "#6B7280",
+  "Defensa portuaria":        "#0891B2",
+  "Vehiculo / Embarcacion":   "#7C3AED",
+  "Repuesto / Reparacion":    "#9D174D",
+  "Kit de seguridad":         "#B91C1C",
+  "Otros / Auxiliares":       "#4B5563",
 };
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
@@ -71,7 +82,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .kpi.yellow .kpi-value { color: #FCD34D; }
 .kpi.blue  .kpi-value { color: #93C5FD; }
 
-/* TABS */
 .tabs { display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,.1); position: relative; z-index: 1; }
 .tab-btn {
   font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .3px;
@@ -118,7 +128,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .clear-btn:hover { background: #F0F4F8; }
 
 .table-outer { overflow-x: auto; width: 100%; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-table { min-width: 1300px; width: 100%; border-collapse: collapse; }
+table { min-width: 1400px; width: 100%; border-collapse: collapse; }
 thead { background: #F8FAFC; }
 th {
   font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
@@ -133,14 +143,15 @@ tr:hover td { background: #F8FAFC; }
   display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700;
   padding: 3px 8px; border-radius: 4px; letter-spacing: .3px; white-space: nowrap;
 }
-.badge-cat {
+.badge-fam {
   display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 600;
   padding: 2px 8px; border-radius: 4px; white-space: nowrap;
 }
 .foto-link { color: var(--blue); text-decoration: none; font-size: 11px; }
 .foto-link:hover { text-decoration: underline; }
-.cell-modelo { max-width: 200px; }
-.cell-comentarios { max-width: 200px; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-modelo { max-width: 180px; }
+.cell-cap { max-width: 140px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-comentarios { max-width: 160px; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cell-num { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
 .pagination {
@@ -159,36 +170,22 @@ tr:hover td { background: #F8FAFC; }
 .page-btn:disabled { opacity: .4; cursor: not-allowed; }
 .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
-/* MOVIMIENTOS */
 .mov-content { padding: 32px 40px 60px; }
 .mov-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
 @media (max-width: 900px) { .mov-grid { grid-template-columns: 1fr; } }
-
-.form-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-  padding: 24px; display: flex; flex-direction: column; gap: 16px;
-}
+.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .form-card-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
-.form-input {
-  padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
-  font-family: var(--sans); font-size: 12px; color: var(--text);
-  outline: none; transition: border-color .15s; background: #fff;
-}
+.form-input { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 12px; color: var(--text); outline: none; transition: border-color .15s; background: #fff; }
 .form-input:focus { border-color: var(--blue); }
 .form-input:disabled { background: #F8FAFC; color: var(--muted); cursor: not-allowed; }
 .form-hint { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.btn-primary {
-  width: 100%; padding: 11px; background: var(--green); color: #fff; border: none;
-  border-radius: 8px; font-family: var(--sans); font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: background .15s; letter-spacing: .3px;
-}
+.btn-primary { width: 100%; padding: 11px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; letter-spacing: .3px; }
 .btn-primary:hover { background: #156057; }
 .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
 .form-success { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
 .form-error   { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
-
 .mov-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .mov-table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .mov-table-title { font-size: 13px; font-weight: 700; color: var(--navy); }
@@ -201,7 +198,6 @@ tr:hover td { background: #F8FAFC; }
 .arrow-badge { font-family: var(--mono); font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .arrow-badge strong { color: var(--navy); }
 .mov-empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 12px; }
-
 .loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
 .loading-text { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: 2px; text-transform: uppercase; }
 .empty { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 13px; }
@@ -209,33 +205,35 @@ tr:hover td { background: #F8FAFC; }
 
 // ─── TAB INVENTARIO ───────────────────────────────────────────────────────────
 function TabInventario({ items }) {
-  const [search, setSearch]     = useState("");
-  const [filtCat, setFiltCat]   = useState("");
-  const [filtBase, setFiltBase] = useState("");
-  const [filtEst, setFiltEst]   = useState("");
-  const [page, setPage]         = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [search, setSearch]         = useState("");
+  const [filtFamilia, setFiltFamilia] = useState("");
+  const [filtBase, setFiltBase]     = useState("");
+  const [filtEst, setFiltEst]       = useState("");
+  const [page, setPage]             = useState(1);
+  const [pageSize, setPageSize]     = useState(50);
 
-  useEffect(() => { setPage(1); }, [search, filtCat, filtBase, filtEst, pageSize]);
+  useEffect(() => { setPage(1); }, [search, filtFamilia, filtBase, filtEst, pageSize]);
 
   const filtered = items.filter(it => {
     const q = search.toLowerCase();
-    const matchSearch = !q || [it.modelo, it.fabricante, it.comentarios, it.terminal, it.ubicacion, it.numero_serie, String(it.item_numero || "")]
+    const matchSearch = !q || [it.modelo, it.fabricante, it.comentarios, it.terminal,
+      it.ubicacion, it.numero_serie, it.familia, it.subtipo, it.capacidad,
+      String(it.item_numero || "")]
       .some(f => f && String(f).toLowerCase().includes(q));
-    const matchCat  = !filtCat  || it.categoria === filtCat;
-    const matchBase = !filtBase || it.ubicacion === filtBase;
-    const matchEst  = !filtEst  || it.estado === filtEst;
-    return matchSearch && matchCat && matchBase && matchEst;
+    const matchFam  = !filtFamilia || it.familia === filtFamilia;
+    const matchBase = !filtBase    || it.ubicacion === filtBase;
+    const matchEst  = !filtEst     || it.estado === filtEst;
+    return matchSearch && matchFam && matchBase && matchEst;
   });
 
-  const categorias = [...new Set(items.map(i => i.categoria).filter(Boolean))].sort();
-  const bases      = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
-  const estados    = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
+  const familias = [...new Set(items.map(i => i.familia).filter(Boolean))].sort();
+  const bases    = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
+  const estados  = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
 
   const totalPages = Math.ceil(filtered.length / pageSize);
   const pageItems  = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const clearFilters = () => { setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1); };
+  const clearFilters = () => { setSearch(""); setFiltFamilia(""); setFiltBase(""); setFiltEst(""); setPage(1); };
 
   return (
     <>
@@ -244,17 +242,17 @@ function TabInventario({ items }) {
         <div className="toolbar">
           <input
             className="search-box"
-            placeholder="Buscar por #, modelo, fabricante, base, Nº serie, terminal..."
+            placeholder="Buscar por #, modelo, familia, subtipo, capacidad, base, Nº serie..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
+          <select className="filter-select" value={filtFamilia} onChange={e => setFiltFamilia(e.target.value)}>
+            <option value="">Todas las familias</option>
+            {familias.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
           <select className="filter-select" value={filtBase} onChange={e => setFiltBase(e.target.value)}>
             <option value="">Todas las bases</option>
             {bases.map(b => <option key={b} value={b}>{b}</option>)}
-          </select>
-          <select className="filter-select" value={filtCat} onChange={e => setFiltCat(e.target.value)}>
-            <option value="">Todas las categorías</option>
-            {categorias.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <select className="filter-select" value={filtEst} onChange={e => setFiltEst(e.target.value)}>
             <option value="">Todos los estados</option>
@@ -265,7 +263,7 @@ function TabInventario({ items }) {
             <select className="filter-select" style={{ minWidth: 120 }} value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
               {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} por página</option>)}
             </select>
-            {(search || filtCat || filtBase || filtEst) &&
+            {(search || filtFamilia || filtBase || filtEst) &&
               <button className="clear-btn" onClick={clearFilters}>Limpiar filtros</button>
             }
           </div>
@@ -277,10 +275,12 @@ function TabInventario({ items }) {
           <thead>
             <tr>
               <th>#</th>
-              <th>Categoría</th>
+              <th>Familia</th>
+              <th>Subtipo</th>
               <th>Base</th>
-              <th>Fabricante</th>
               <th>Modelo / Descripción</th>
+              <th>Capacidad</th>
+              <th>Fabricante</th>
               <th>Nº Serie</th>
               <th>Cant.</th>
               <th>Metros</th>
@@ -293,22 +293,24 @@ function TabInventario({ items }) {
           </thead>
           <tbody>
             {pageItems.length === 0 && (
-              <tr><td colSpan={13} className="empty">No se encontraron resultados</td></tr>
+              <tr><td colSpan={15} className="empty">No se encontraron resultados</td></tr>
             )}
             {pageItems.map(it => {
               const estCol = ESTADOS_COLOR[it.estado] || { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" };
-              const catCol = CATEGORIAS_COLOR[it.categoria] || "#4B5563";
+              const famCol = FAMILIA_COLOR[it.familia] || "#4B5563";
               return (
                 <tr key={it.id}>
                   <td className="cell-num">{it.item_numero ?? "—"}</td>
                   <td>
-                    <span className="badge-cat" style={{ background: `${catCol}18`, color: catCol, border: `1px solid ${catCol}30` }}>
-                      {it.categoria || "—"}
+                    <span className="badge-fam" style={{ background: `${famCol}18`, color: famCol, border: `1px solid ${famCol}30` }}>
+                      {it.familia || "—"}
                     </span>
                   </td>
+                  <td style={{ fontSize: 11, color: "var(--muted)" }}>{it.subtipo || "—"}</td>
                   <td style={{ fontWeight: 500 }}>{it.ubicacion || "—"}</td>
-                  <td style={{ color: "var(--muted)" }}>{it.fabricante || "—"}</td>
                   <td className="cell-modelo">{it.modelo || "—"}</td>
+                  <td className="cell-cap" title={it.capacidad}>{it.capacidad || "—"}</td>
+                  <td style={{ color: "var(--muted)", fontSize: 11 }}>{it.fabricante || "—"}</td>
                   <td className="cell-num">{it.numero_serie || "—"}</td>
                   <td className="cell-num" style={{ textAlign: "center" }}>{it.cantidad ?? "—"}</td>
                   <td className="cell-num" style={{ textAlign: "center" }}>{it.metros != null ? `${it.metros}m` : "—"}</td>
@@ -372,8 +374,8 @@ function TabMovimientos({ items, onMovimientoCreado }) {
   const [errorMsg, setErrorMsg]       = useState("");
   const [errorLoad, setErrorLoad]     = useState("");
 
-  const [filtCategoria, setFiltCategoria] = useState("");
-  const [filtModelo, setFiltModelo]       = useState("");
+  const [filtFamilia, setFiltFamilia]     = useState("");
+  const [filtSubtipo, setFiltSubtipo]     = useState("");
   const [filtBaseOrigen, setFiltBaseOrigen] = useState("");
   const [itemId, setItemId]               = useState("");
   const [cantidadMov, setCantidadMov]     = useState(1);
@@ -387,7 +389,7 @@ function TabMovimientos({ items, onMovimientoCreado }) {
     try {
       const { data, error } = await supabase
         .from("inventario_movimientos")
-        .select("*, inventario_items(modelo, categoria, ubicacion)")
+        .select("*, inventario_items(modelo, familia, subtipo, ubicacion)")
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
@@ -399,21 +401,21 @@ function TabMovimientos({ items, onMovimientoCreado }) {
     }
   };
 
-  // Cascada de filtros
+  // Cascada: Familia → Subtipo → Base → Ítem
   const itemsMovibles = items.filter(i => i.estado === "Disponible" || i.estado === "En uso");
-  const categoriasCasc = [...new Set(itemsMovibles.map(i => i.categoria).filter(Boolean))].sort();
-  const modelosCasc = [...new Set(
-    itemsMovibles.filter(i => !filtCategoria || i.categoria === filtCategoria)
-      .map(i => i.modelo).filter(Boolean)
+  const familiasCasc = [...new Set(itemsMovibles.map(i => i.familia).filter(Boolean))].sort();
+  const subtiposCasc = [...new Set(
+    itemsMovibles.filter(i => !filtFamilia || i.familia === filtFamilia)
+      .map(i => i.subtipo).filter(Boolean)
   )].sort();
   const basesCasc = [...new Set(
     itemsMovibles
-      .filter(i => (!filtCategoria || i.categoria === filtCategoria) && (!filtModelo || i.modelo === filtModelo))
+      .filter(i => (!filtFamilia || i.familia === filtFamilia) && (!filtSubtipo || i.subtipo === filtSubtipo))
       .map(i => i.ubicacion).filter(Boolean)
   )].sort();
   const itemsFiltrados = itemsMovibles.filter(i =>
-    (!filtCategoria || i.categoria === filtCategoria) &&
-    (!filtModelo || i.modelo === filtModelo) &&
+    (!filtFamilia || i.familia === filtFamilia) &&
+    (!filtSubtipo || i.subtipo === filtSubtipo) &&
     (!filtBaseOrigen || i.ubicacion === filtBaseOrigen)
   );
 
@@ -424,7 +426,7 @@ function TabMovimientos({ items, onMovimientoCreado }) {
     : 1;
 
   const resetFiltros = () => {
-    setFiltCategoria(""); setFiltModelo(""); setFiltBaseOrigen("");
+    setFiltFamilia(""); setFiltSubtipo(""); setFiltBaseOrigen("");
     setItemId(""); setCantidadMov(1); setBaseDestino(""); setErrorMsg(""); setSuccessMsg("");
   };
 
@@ -434,33 +436,24 @@ function TabMovimientos({ items, onMovimientoCreado }) {
     if (baseDestino === itemSeleccionado.ubicacion) { setErrorMsg("La base de destino no puede ser la misma que la de origen."); return; }
     if (cantidadMov < 1 || cantidadMov > maxCantidad) { setErrorMsg(`La cantidad debe ser entre 1 y ${maxCantidad}.`); return; }
 
-    // Snapshot para evitar stale closure si items cambia durante el await
     const snapId       = itemId;
     const snapOrigen   = itemSeleccionado.ubicacion;
     const snapModelo   = itemSeleccionado.modelo;
     const snapCantidad = cantidadMov;
     const snapMotivo   = motivo;
 
-    setSaving(true);
-    setErrorMsg("");
-    setSuccessMsg("");
+    setSaving(true); setErrorMsg(""); setSuccessMsg("");
 
     try {
-      // 1. Actualizar ubicación primero (estado real del ítem)
       const { error: errItem } = await supabase
         .from("inventario_items")
         .update({ ubicacion: baseDestino })
         .eq("id", snapId);
       if (errItem) throw errItem;
 
-      // 2. Registrar en historial (trazabilidad)
       const { error: errMov } = await supabase.from("inventario_movimientos").insert({
-        item_id: snapId,
-        base_origen: snapOrigen,
-        base_destino: baseDestino,
-        cantidad: snapCantidad,
-        motivo: snapMotivo || null,
-        usuario: "sistema",
+        item_id: snapId, base_origen: snapOrigen, base_destino: baseDestino,
+        cantidad: snapCantidad, motivo: snapMotivo || null, usuario: "sistema",
       });
       if (errMov) throw errMov;
 
@@ -479,34 +472,31 @@ function TabMovimientos({ items, onMovimientoCreado }) {
     <div className="mov-content">
       <div className="section-label">Movimientos de equipamiento</div>
       <div className="mov-grid">
-
-        {/* FORMULARIO */}
         <div className="form-card">
           <div className="form-card-title">Registrar movimiento</div>
-
           {successMsg && <div className="form-success">{successMsg}</div>}
           {errorMsg   && <div className="form-error">{errorMsg}</div>}
 
           <div className="form-group">
-            <label className="form-label">1. Categoría</label>
-            <select className="form-input" value={filtCategoria} onChange={e => { setFiltCategoria(e.target.value); setFiltModelo(""); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }}>
-              <option value="">Todas las categorías...</option>
-              {categoriasCasc.map(c => <option key={c} value={c}>{c}</option>)}
+            <label className="form-label">1. Familia</label>
+            <select className="form-input" value={filtFamilia} onChange={e => { setFiltFamilia(e.target.value); setFiltSubtipo(""); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }}>
+              <option value="">Todas las familias...</option>
+              {familiasCasc.map(f => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
 
           <div className="form-group">
-            <label className="form-label">2. Modelo</label>
-            <select className="form-input" value={filtModelo} onChange={e => { setFiltModelo(e.target.value); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtCategoria}>
-              <option value="">{filtCategoria ? "Seleccioná un modelo..." : "Primero elegí categoría"}</option>
-              {modelosCasc.map(m => <option key={m} value={m}>{m}</option>)}
+            <label className="form-label">2. Subtipo</label>
+            <select className="form-input" value={filtSubtipo} onChange={e => { setFiltSubtipo(e.target.value); setFiltBaseOrigen(""); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtFamilia}>
+              <option value="">{filtFamilia ? "Seleccioná subtipo..." : "Primero elegí familia"}</option>
+              {subtiposCasc.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
 
           <div className="form-group">
             <label className="form-label">3. Base de origen</label>
-            <select className="form-input" value={filtBaseOrigen} onChange={e => { setFiltBaseOrigen(e.target.value); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtModelo}>
-              <option value="">{filtModelo ? "Seleccioná base de origen..." : "Primero elegí modelo"}</option>
+            <select className="form-input" value={filtBaseOrigen} onChange={e => { setFiltBaseOrigen(e.target.value); setItemId(""); setCantidadMov(1); setErrorMsg(""); setSuccessMsg(""); }} disabled={!filtFamilia}>
+              <option value="">{filtFamilia ? "Seleccioná base..." : "Primero elegí familia"}</option>
               {basesCasc.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
@@ -531,6 +521,7 @@ function TabMovimientos({ items, onMovimientoCreado }) {
               <div style={{ fontWeight: 700, color: "var(--navy)", marginBottom: 4 }}>{itemSeleccionado.modelo}</div>
               <div style={{ color: "var(--muted)" }}>Base actual: <strong style={{ color: "var(--navy)" }}>{itemSeleccionado.ubicacion}</strong></div>
               <div style={{ color: "var(--muted)" }}>Estado: {itemSeleccionado.estado}</div>
+              {itemSeleccionado.capacidad && <div style={{ color: "var(--muted)" }}>Capacidad: {itemSeleccionado.capacidad}</div>}
               {itemSeleccionado.numero_serie && <div style={{ color: "var(--muted)" }}>Nº Serie: {itemSeleccionado.numero_serie}</div>}
             </div>
           )}
@@ -547,9 +538,7 @@ function TabMovimientos({ items, onMovimientoCreado }) {
 
           <div className="form-group">
             <label className="form-label">Cantidad</label>
-            <input
-              type="number" className="form-input"
-              min={1} max={maxCantidad} value={cantidadMov}
+            <input type="number" className="form-input" min={1} max={maxCantidad} value={cantidadMov}
               onChange={e => setCantidadMov(Number(e.target.value))}
               disabled={itemSeleccionado?.numero_serie}
             />
@@ -561,11 +550,9 @@ function TabMovimientos({ items, onMovimientoCreado }) {
 
           <div className="form-group">
             <label className="form-label">Motivo (opcional)</label>
-            <input
-              type="text" className="form-input"
+            <input type="text" className="form-input"
               placeholder="Ej: Respuesta emergencia, rotación de stock..."
-              value={motivo}
-              onChange={e => setMotivo(e.target.value)}
+              value={motivo} onChange={e => setMotivo(e.target.value)}
             />
           </div>
 
@@ -574,7 +561,6 @@ function TabMovimientos({ items, onMovimientoCreado }) {
           </button>
         </div>
 
-        {/* HISTORIAL */}
         <div className="mov-table-wrap">
           <div className="mov-table-header">
             <div className="mov-table-title">Historial de movimientos</div>
@@ -605,7 +591,7 @@ function TabMovimientos({ items, onMovimientoCreado }) {
                     </td>
                     <td style={{ fontWeight: 500 }}>
                       {mov.inventario_items?.modelo || "—"}
-                      <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{mov.inventario_items?.categoria}</div>
+                      <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{mov.inventario_items?.familia} · {mov.inventario_items?.subtipo}</div>
                     </td>
                     <td>
                       <div className="arrow-badge">
@@ -679,7 +665,6 @@ export default function App() {
   return (
     <>
       <style>{CSS}</style>
-
       <header className="header">
         <div className="header-brand">
           <img src="/CS.png" alt="Clean Sea" className="header-logo" />
