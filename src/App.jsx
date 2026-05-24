@@ -251,21 +251,7 @@ export default function App() {
     setSearch(""); setFiltCat(""); setFiltBase(""); setFiltEst(""); setPage(1);
   };
 
-  const renderPagination = () => {
-    const pages = [];
-    const left  = Math.max(2, page - 2);
-    const right = Math.min(totalPages - 1, page + 2);
-    pages.push(1);
-    if (left > 2) pages.push("dots-l");
-    for (let n = left; n <= right; n++) pages.push(n);
-    if (right < totalPages - 1) pages.push("dots-r");
-    if (totalPages > 1) pages.push(totalPages);
-    return pages.map(p =>
-      typeof p === "string"
-        ? <span key={p} style={{ padding: "5px 4px", fontSize: 11, color: "var(--muted)" }}>…</span>
-        : <button key={p} className={"page-btn" + (page === p ? " active" : "")} onClick={() => setPage(p)}>{p}</button>
-    );
-  };
+
 
   if (loading) return (
     <div className="loading">
@@ -439,7 +425,21 @@ export default function App() {
           </span>
           <div className="page-btns">
             <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>← Anterior</button>
-            {renderPagination()}
+            {(() => {
+              const pgNums = [];
+              const pgLeft  = Math.max(2, page - 2);
+              const pgRight = Math.min(totalPages - 1, page + 2);
+              pgNums.push(1);
+              if (pgLeft > 2) pgNums.push("dots-l");
+              for (let n = pgLeft; n <= pgRight; n++) pgNums.push(n);
+              if (pgRight < totalPages - 1) pgNums.push("dots-r");
+              if (totalPages > 1) pgNums.push(totalPages);
+              return pgNums.map(p =>
+                typeof p === "string"
+                  ? <span key={p} style={{ padding: "5px 4px", fontSize: 11, color: "var(--muted)" }}>…</span>
+                  : <button key={p} className={"page-btn" + (page === p ? " active" : "")} onClick={() => setPage(p)}>{p}</button>
+              );
+            })()}
             <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>Siguiente →</button>
           </div>
         </div>
