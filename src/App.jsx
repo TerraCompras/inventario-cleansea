@@ -211,6 +211,13 @@ tr:hover td { background: #F8FAFC; }
 .rem-content { padding: 32px 40px 60px; }
 .badge-remito { display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
 .badge-pendiente { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+.badge-rechazado { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+.rem-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+@media (max-width: 768px) { .rem-kpis { grid-template-columns: repeat(2, 1fr); } }
+.rem-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+.rem-kpi-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.rem-kpi-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--navy); }
+.rem-kpi-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
 .badge-confirmado { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
 .btn-link { font-family: var(--mono); font-size: 10px; color: var(--blue); background: none; border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px; cursor: pointer; }
 .btn-link:hover { background: #EFF6FF; }
@@ -1106,9 +1113,9 @@ function TabHistorial() {
 
 // ─── TAB REMITOS ─────────────────────────────────────────────────────────────
 function TabRemitos() {
-  const [remitos, setRemitos]   = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [remitos, setRemitos]     = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [errorMsg, setErrorMsg]   = useState("");
   const [verRemito, setVerRemito] = useState(null);
 
   useEffect(() => {
@@ -1126,13 +1133,49 @@ function TabRemitos() {
     load();
   }, []);
 
+  const total       = remitos.length;
+  const pendientes  = remitos.filter(r => r.estado === "Pendiente").length;
+  const confirmados = remitos.filter(r => r.estado === "Confirmado").length;
+  const rechazados  = remitos.filter(r => r.estado === "Rechazado").length;
+
+  const badgeRemito = (estado) => {
+    if (estado === "Confirmado") return <span className="badge-remito badge-confirmado">Confirmado</span>;
+    if (estado === "Rechazado")  return <span className="badge-remito badge-rechazado">Rechazado</span>;
+    return <span className="badge-remito badge-pendiente">Pendiente</span>;
+  };
+
   return (
     <div className="rem-content">
       <div className="section-label">Remitos de movimiento</div>
+
+      {/* KPIs */}
+      <div className="rem-kpis">
+        <div className="rem-kpi">
+          <div className="rem-kpi-label">Total</div>
+          <div className="rem-kpi-value">{total}</div>
+          <div className="rem-kpi-sub">remitos generados</div>
+        </div>
+        <div className="rem-kpi" style={{ borderColor: "#FDE68A" }}>
+          <div className="rem-kpi-label" style={{ color:"#92400E" }}>Pendientes</div>
+          <div className="rem-kpi-value" style={{ color:"#F59E0B" }}>{pendientes}</div>
+          <div className="rem-kpi-sub">sin confirmar</div>
+        </div>
+        <div className="rem-kpi" style={{ borderColor: "#A7F3D0" }}>
+          <div className="rem-kpi-label" style={{ color:"#065F46" }}>Confirmados</div>
+          <div className="rem-kpi-value" style={{ color:"#10B981" }}>{confirmados}</div>
+          <div className="rem-kpi-sub">recibidos correctamente</div>
+        </div>
+        <div className="rem-kpi" style={{ borderColor: "#FECACA" }}>
+          <div className="rem-kpi-label" style={{ color:"#991B1B" }}>Rechazados</div>
+          <div className="rem-kpi-value" style={{ color:"#EF4444" }}>{rechazados}</div>
+          <div className="rem-kpi-sub">requieren atención</div>
+        </div>
+      </div>
+
       <div className="mov-table-wrap">
         <div className="mov-table-header">
           <div className="mov-table-title">Registro de remitos</div>
-          <div className="mov-table-count">{remitos.length} remitos</div>
+          <div className="mov-table-count">{total} remitos</div>
         </div>
         {errorMsg ? <div className="mov-empty" style={{ color:"#991B1B" }}>{errorMsg}</div>
         : loading  ? <div className="mov-empty">Cargando...</div>
@@ -1143,7 +1186,7 @@ function TabRemitos() {
               <thead>
                 <tr>
                   <th>Número</th><th>Fecha</th><th>Ítem</th><th>Origen</th><th>Destino</th>
-                  <th>Transportista</th><th>Cant.</th><th>Estado</th><th>Confirmado</th><th></th>
+                  <th>Transportista</th><th>Cant.</th><th>Estado</th><th>Confirmado por</th><th>Motivo rechazo</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -1161,15 +1204,18 @@ function TabRemitos() {
                       {r.inventario_remito_items?.map(l => l.base_origen).filter((v,i,a) => a.indexOf(v)===i).join(", ") || "—"}
                     </td>
                     <td style={{ color:"var(--green)", fontWeight:500 }}>{r.base_destino}</td>
-                    <td style={{ fontSize:11, color:"var(--muted)" }}>
-                      {r.inventario_remito_items?.[0]?.transportista || "—"}
-                    </td>
+                    <td style={{ fontSize:11, color:"var(--muted)" }}>{r.inventario_remito_items?.[0]?.transportista || "—"}</td>
                     <td className="cell-num" style={{ textAlign:"center" }}>
                       {r.inventario_remito_items?.reduce((s, l) => s + (l.cantidad || 0), 0) || "—"}
                     </td>
-                    <td><span className={`badge-remito ${r.estado === "Confirmado" ? "badge-confirmado" : "badge-pendiente"}`}>{r.estado}</span></td>
+                    <td>{badgeRemito(r.estado)}</td>
                     <td style={{ fontSize:11, color:"var(--muted)" }}>
-                      {r.confirmado_por ? <span>{r.confirmado_por}<br/><span style={{ fontSize:10 }}>{fmtDateTime(r.confirmado_at)}</span></span> : "—"}
+                      {r.confirmado_por
+                        ? <span>{r.confirmado_por}<br/><span style={{ fontSize:10 }}>{fmtDateTime(r.confirmado_at)}</span></span>
+                        : "—"}
+                    </td>
+                    <td style={{ fontSize:11, color:"#991B1B", maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }} title={r.motivo_rechazo}>
+                      {r.motivo_rechazo || "—"}
                     </td>
                     <td><button className="btn-link" onClick={() => setVerRemito(r)}>Ver →</button></td>
                   </tr>
