@@ -61,7 +61,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .back-btn { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.7); font-family: var(--sans); font-size: 10px; font-weight: 600; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all .15s; }
 .back-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
 
-.hero { background: linear-gradient(135deg, var(--navy) 0%, #1a2a5e 50%, #0f3d38 100%); padding: 40px 40px 0; position: relative; overflow: hidden; }
+.hero { background: linear-gradient(135deg, var(--navy) 0%, #1a2a5e 50%, #0f3d38 100%); padding: 40px 24px 0; position: relative; overflow: hidden; }
 .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; border-radius: 50%; background: rgba(26,122,110,.2); pointer-events: none; }
 .hero-content { position: relative; z-index: 1; }
 .hero-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,.4); text-transform: uppercase; margin-bottom: 8px; }
@@ -84,7 +84,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .tab-btn:hover { color: rgba(255,255,255,.8); }
 .tab-btn.active { color: #6EE7DE; border-bottom-color: #6EE7DE; }
 
-.content-top { padding: 32px 40px 20px; }
+.content-top { padding: 32px 24px 20px; }
 .section-label { font-family: var(--mono); font-size: 9px; letter-spacing: 2.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
 .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
@@ -101,7 +101,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .btn-nuevo:hover { background: #156057; }
 
 .table-outer { overflow-x: auto; width: 100%; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-table { min-width: 1700px; width: 100%; border-collapse: collapse; }
+table { min-width: 1500px; width: 100%; border-collapse: collapse; }
 thead { background: #F8FAFC; }
 th { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
 td { padding: 10px 16px; border-bottom: 1px solid #F0F4F8; font-size: 12px; color: var(--text); vertical-align: middle; }
@@ -182,6 +182,38 @@ tr:hover td { background: #F8FAFC; }
 .loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
 .loading-text { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: 2px; text-transform: uppercase; }
 .empty { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .header { padding: 0 16px; }
+  .hero { padding: 24px 16px 0; }
+  .hero-title { font-size: 20px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi-value { font-size: 22px; }
+  .tabs .tab-btn { padding: 12px 14px; font-size: 11px; }
+  .content-top { padding: 20px 16px 16px; }
+  .toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .search-box { min-width: unset; }
+  .filter-select { min-width: unset; width: 100%; }
+  .toolbar-right { flex-wrap: wrap; margin-left: 0; }
+  .count-badge { font-size: 9px; }
+  .btn-nuevo { width: 100%; text-align: center; }
+  table { min-width: 900px; }
+  .pagination { padding: 12px 16px; flex-direction: column; gap: 10px; }
+  .mov-content { padding: 20px 16px 40px; }
+  .mov-grid { grid-template-columns: 1fr; }
+  .hist-content { padding: 20px 16px 40px; }
+  .modal { margin: 0; border-radius: 12px; }
+  .modal-body { grid-template-columns: 1fr; }
+  .modal-body .full { grid-column: 1; }
+}
+@media (max-width: 480px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .kpi { padding: 12px 14px; }
+  .kpi-value { font-size: 20px; }
+  .hero-title { font-size: 18px; }
+  table { min-width: 700px; }
+}
 `;
 
 // ─── MODAL ITEM ───────────────────────────────────────────────────────────────
@@ -385,6 +417,7 @@ function TabInventario({ items, onReload, usuario }) {
         <table>
           <thead>
             <tr>
+              <th></th>
               <th>Item</th>
               <th>Familia</th>
               <th>Subtipo</th>
@@ -402,7 +435,6 @@ function TabInventario({ items, onReload, usuario }) {
               <th>Obs</th>
               <th>Comentarios</th>
               <th>Foto</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -414,6 +446,7 @@ function TabInventario({ items, onReload, usuario }) {
               const famCol = FAMILIA_COLOR[it.familia] || "#4B5563";
               return (
                 <tr key={it.id}>
+                  <td><button className="btn-edit" onClick={() => setModalItem(it)}>✏️</button></td>
                   <td className="cell-num">{it.item_numero ?? "—"}</td>
                   <td><span className="badge-fam" style={{ background: `${famCol}18`, color: famCol, border: `1px solid ${famCol}30` }}>{it.familia || "—"}</span></td>
                   <td style={{ fontSize: 11, color: "var(--muted)" }}>{it.subtipo || "—"}</td>
@@ -431,7 +464,6 @@ function TabInventario({ items, onReload, usuario }) {
                   <td className="cell-med" title={it.obs}>{it.obs || "—"}</td>
                   <td className="cell-long" title={it.comentarios}>{it.comentarios || "—"}</td>
                   <td>{it.foto_url ? <a className="foto-link" href={it.foto_url} target="_blank" rel="noreferrer">Ver →</a> : <span style={{ color: "var(--muted)", fontSize: 11 }}>—</span>}</td>
-                  <td><button className="btn-edit" onClick={() => setModalItem(it)}>Editar</button></td>
                 </tr>
               );
             })}
