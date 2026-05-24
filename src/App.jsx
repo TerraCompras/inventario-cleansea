@@ -1,4 +1,4 @@
-// v2.0 familia/subtipo/capacidad
+// v3.0 - reescritura completa con columnas Excel GERO v2
 import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
 
@@ -12,24 +12,23 @@ const ESTADOS_COLOR = {
 };
 
 const FAMILIA_COLOR = {
-  "Barrera de Contención":    "#1A7A6E",
-  "Barrera de Contencion":    "#1A7A6E",
-  "Bomba":                    "#235C96",
-  "Manguera":                 "#C05621",
-  "Skimmer":                  "#0E7490",
-  "Absorbente":               "#7C3AED",
-  "Tanque / Almacenamiento":  "#854F0B",
-  "Power Pack":               "#B45309",
-  "Seguridad / EPP":          "#DC2626",
-  "Maniobra":                 "#1D4ED8",
-  "Infraestructura":          "#374151",
-  "Equipamiento limpieza":    "#059669",
-  "Herramienta / Util":       "#6B7280",
-  "Defensa portuaria":        "#0891B2",
-  "Vehiculo / Embarcacion":   "#7C3AED",
-  "Repuesto / Reparacion":    "#9D174D",
-  "Kit de seguridad":         "#B91C1C",
-  "Otros / Auxiliares":       "#4B5563",
+  "Barrera de Contención":   "#1A7A6E",
+  "Bomba":                   "#235C96",
+  "Manguera":                "#C05621",
+  "Skimmer":                 "#0E7490",
+  "Absorbente":              "#7C3AED",
+  "Tanque / Almacenamiento": "#854F0B",
+  "Power Pack":              "#B45309",
+  "Seguridad / EPP":         "#DC2626",
+  "Maniobra":                "#1D4ED8",
+  "Infraestructura":         "#374151",
+  "Equipamiento limpieza":   "#059669",
+  "Herramienta / Util":      "#6B7280",
+  "Defensa portuaria":       "#0891B2",
+  "Vehiculo / Embarcacion":  "#7C3AED",
+  "Repuesto / Reparacion":   "#9D174D",
+  "Kit de seguridad":        "#B91C1C",
+  "Otros / Auxiliares":      "#4B5563",
 };
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
@@ -46,26 +45,15 @@ const CSS = `
 }
 body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
 
-.header {
-  background: var(--navy); padding: 0 40px; display: flex; align-items: center;
-  justify-content: space-between; height: 64px;
-  box-shadow: 0 2px 12px rgba(33,51,99,.2); position: sticky; top: 0; z-index: 10;
-}
+.header { background: var(--navy); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 64px; box-shadow: 0 2px 12px rgba(33,51,99,.2); position: sticky; top: 0; z-index: 10; }
 .header-brand { display: flex; align-items: center; gap: 12px; }
 .header-logo { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.2); }
 .header-main { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 1.5px; text-transform: uppercase; }
 .header-sub { font-size: 9px; color: rgba(255,255,255,.45); letter-spacing: .5px; font-family: var(--mono); margin-top: 1px; }
-.back-btn {
-  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
-  color: rgba(255,255,255,.7); font-family: var(--sans); font-size: 10px; font-weight: 600;
-  padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all .15s;
-}
+.back-btn { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.7); font-family: var(--sans); font-size: 10px; font-weight: 600; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all .15s; }
 .back-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
 
-.hero {
-  background: linear-gradient(135deg, var(--navy) 0%, #1a2a5e 50%, #0f3d38 100%);
-  padding: 40px 40px 0; position: relative; overflow: hidden;
-}
+.hero { background: linear-gradient(135deg, var(--navy) 0%, #1a2a5e 50%, #0f3d38 100%); padding: 40px 40px 0; position: relative; overflow: hidden; }
 .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; border-radius: 50%; background: rgba(26,122,110,.2); pointer-events: none; }
 .hero-content { position: relative; z-index: 1; }
 .hero-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,.4); text-transform: uppercase; margin-bottom: 8px; }
@@ -84,89 +72,44 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .kpi.blue  .kpi-value { color: #93C5FD; }
 
 .tabs { display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,.1); position: relative; z-index: 1; }
-.tab-btn {
-  font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .3px;
-  padding: 14px 28px; background: none; border: none; color: rgba(255,255,255,.5);
-  cursor: pointer; transition: all .15s; border-bottom: 3px solid transparent;
-}
+.tab-btn { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .3px; padding: 14px 28px; background: none; border: none; color: rgba(255,255,255,.5); cursor: pointer; transition: all .15s; border-bottom: 3px solid transparent; }
 .tab-btn:hover { color: rgba(255,255,255,.8); }
 .tab-btn.active { color: #6EE7DE; border-bottom-color: #6EE7DE; }
 
 .content-top { padding: 32px 40px 20px; }
-.section-label {
-  font-family: var(--mono); font-size: 9px; letter-spacing: 2.5px; color: var(--muted);
-  text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
-}
+.section-label { font-family: var(--mono); font-size: 9px; letter-spacing: 2.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
 .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-.toolbar {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-  padding: 16px 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
-  margin-bottom: 0;
-}
-.search-box {
-  flex: 1; min-width: 220px; padding: 8px 14px; border: 1px solid var(--border);
-  border-radius: 8px; font-family: var(--sans); font-size: 12px; color: var(--text);
-  outline: none; transition: border-color .15s;
-}
+.toolbar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.search-box { flex: 1; min-width: 220px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 12px; color: var(--text); outline: none; transition: border-color .15s; }
 .search-box:focus { border-color: var(--blue); }
-.filter-select {
-  padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-  font-family: var(--sans); font-size: 12px; color: var(--text);
-  background: #fff; outline: none; cursor: pointer; min-width: 150px;
-}
+.filter-select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 12px; color: var(--text); background: #fff; outline: none; cursor: pointer; min-width: 150px; }
 .filter-select:focus { border-color: var(--blue); }
 .toolbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-.count-badge {
-  font-family: var(--mono); font-size: 10px; color: var(--muted);
-  background: #F0F4F8; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px;
-}
-.clear-btn {
-  font-family: var(--sans); font-size: 11px; font-weight: 600;
-  color: var(--blue); background: none; border: 1px solid var(--border);
-  padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all .15s;
-}
+.count-badge { font-family: var(--mono); font-size: 10px; color: var(--muted); background: #F0F4F8; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; }
+.clear-btn { font-family: var(--sans); font-size: 11px; font-weight: 600; color: var(--blue); background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 .clear-btn:hover { background: #F0F4F8; }
 
 .table-outer { overflow-x: auto; width: 100%; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-table { min-width: 1400px; width: 100%; border-collapse: collapse; }
+table { min-width: 1600px; width: 100%; border-collapse: collapse; }
 thead { background: #F8FAFC; }
-th {
-  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--muted); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
+th { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
 td { padding: 11px 16px; border-bottom: 1px solid #F0F4F8; font-size: 12px; color: var(--text); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: #F8FAFC; }
 
-.badge-estado {
-  display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700;
-  padding: 3px 8px; border-radius: 4px; letter-spacing: .3px; white-space: nowrap;
-}
-.badge-fam {
-  display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 600;
-  padding: 2px 8px; border-radius: 4px; white-space: nowrap;
-}
+.badge-estado { display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: .3px; white-space: nowrap; }
+.badge-fam { display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 600; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
 .foto-link { color: var(--blue); text-decoration: none; font-size: 11px; }
 .foto-link:hover { text-decoration: underline; }
-.cell-modelo { max-width: 180px; }
-.cell-cap { max-width: 140px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cell-comentarios { max-width: 160px; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-long { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-med { max-width: 140px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cell-num { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
-.pagination {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 40px; border-top: 1px solid var(--border); background: #F8FAFC;
-  margin-bottom: 40px;
-}
+.pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 40px; border-top: 1px solid var(--border); background: #F8FAFC; margin-bottom: 40px; }
 .page-info { font-family: var(--mono); font-size: 10px; color: var(--muted); }
 .page-btns { display: flex; gap: 6px; align-items: center; }
-.page-btn {
-  font-family: var(--sans); font-size: 11px; font-weight: 600;
-  padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all .15s;
-  border: 1px solid var(--border); background: #fff; color: var(--navy);
-}
+.page-btn { font-family: var(--sans); font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all .15s; border: 1px solid var(--border); background: #fff; color: var(--navy); }
 .page-btn:hover:not(:disabled) { background: var(--navy); color: #fff; border-color: var(--navy); }
 .page-btn:disabled { opacity: .4; cursor: not-allowed; }
 .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
@@ -175,18 +118,18 @@ tr:hover td { background: #F8FAFC; }
 .mov-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
 @media (max-width: 900px) { .mov-grid { grid-template-columns: 1fr; } }
 .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-.form-card-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.form-card-title { font-size: 14px; font-weight: 700; color: var(--navy); }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
-.form-input { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 12px; color: var(--text); outline: none; transition: border-color .15s; background: #fff; }
+.form-input { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 12px; color: var(--text); outline: none; background: #fff; }
 .form-input:focus { border-color: var(--blue); }
 .form-input:disabled { background: #F8FAFC; color: var(--muted); cursor: not-allowed; }
 .form-hint { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.btn-primary { width: 100%; padding: 11px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; letter-spacing: .3px; }
+.btn-primary { width: 100%; padding: 11px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; }
 .btn-primary:hover { background: #156057; }
 .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
 .form-success { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
-.form-error   { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
+.form-error { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
 .mov-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .mov-table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .mov-table-title { font-size: 13px; font-weight: 700; color: var(--navy); }
@@ -206,21 +149,22 @@ tr:hover td { background: #F8FAFC; }
 
 // ─── TAB INVENTARIO ───────────────────────────────────────────────────────────
 function TabInventario({ items }) {
-  const [search, setSearch]         = useState("");
+  const [search, setSearch]           = useState("");
   const [filtFamilia, setFiltFamilia] = useState("");
-  const [filtBase, setFiltBase]     = useState("");
-  const [filtEst, setFiltEst]       = useState("");
-  const [page, setPage]             = useState(1);
-  const [pageSize, setPageSize]     = useState(50);
+  const [filtBase, setFiltBase]       = useState("");
+  const [filtEst, setFiltEst]         = useState("");
+  const [page, setPage]               = useState(1);
+  const [pageSize, setPageSize]       = useState(50);
 
   useEffect(() => { setPage(1); }, [search, filtFamilia, filtBase, filtEst, pageSize]);
 
   const filtered = items.filter(it => {
     const q = search.toLowerCase();
-    const matchSearch = !q || [it.modelo, it.fabricante, it.comentarios, it.terminal,
-      it.ubicacion, it.numero_serie, it.familia, it.subtipo, it.capacidad,
-      String(it.item_numero || "")]
-      .some(f => f && String(f).toLowerCase().includes(q));
+    const matchSearch = !q || [
+      it.modelo, it.fabricante, it.comentarios, it.terminal,
+      it.ubicacion, it.numero_serie, it.familia, it.subtipo,
+      it.capacidad, it.combustible, it.obs, String(it.item_numero || "")
+    ].some(f => f && String(f).toLowerCase().includes(q));
     const matchFam  = !filtFamilia || it.familia === filtFamilia;
     const matchBase = !filtBase    || it.ubicacion === filtBase;
     const matchEst  = !filtEst     || it.estado === filtEst;
@@ -230,10 +174,8 @@ function TabInventario({ items }) {
   const familias = [...new Set(items.map(i => i.familia).filter(Boolean))].sort();
   const bases    = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
   const estados  = [...new Set(items.map(i => i.estado).filter(Boolean))].sort();
-
   const totalPages = Math.ceil(filtered.length / pageSize);
   const pageItems  = filtered.slice((page - 1) * pageSize, page * pageSize);
-
   const clearFilters = () => { setSearch(""); setFiltFamilia(""); setFiltBase(""); setFiltEst(""); setPage(1); };
 
   return (
@@ -241,11 +183,9 @@ function TabInventario({ items }) {
       <div className="content-top">
         <div className="section-label">Inventario completo</div>
         <div className="toolbar">
-          <input
-            className="search-box"
-            placeholder="Buscar por #, modelo, familia, subtipo, capacidad, base, Nº serie..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+          <input className="search-box"
+            placeholder="Buscar por modelo, familia, subtipo, capacidad, base, Nº serie..."
+            value={search} onChange={e => setSearch(e.target.value)}
           />
           <select className="filter-select" value={filtFamilia} onChange={e => setFiltFamilia(e.target.value)}>
             <option value="">Todas las familias</option>
@@ -275,12 +215,13 @@ function TabInventario({ items }) {
         <table>
           <thead>
             <tr>
-              <th>#</th>
+              <th>Item</th>
               <th>Familia</th>
               <th>Subtipo</th>
+              <th>Capacidad</th>
+              <th>Combustible</th>
               <th>Base</th>
               <th>Modelo / Descripción</th>
-              <th>Capacidad</th>
               <th>Fabricante</th>
               <th>Nº Serie</th>
               <th>Cant.</th>
@@ -288,13 +229,14 @@ function TabInventario({ items }) {
               <th>Condición</th>
               <th>Estado</th>
               <th>Terminal</th>
+              <th>Obs</th>
               <th>Comentarios</th>
               <th>Foto</th>
             </tr>
           </thead>
           <tbody>
             {pageItems.length === 0 && (
-              <tr><td colSpan={15} className="empty">No se encontraron resultados</td></tr>
+              <tr><td colSpan={17} className="empty">No se encontraron resultados</td></tr>
             )}
             {pageItems.map(it => {
               const estCol = ESTADOS_COLOR[it.estado] || { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" };
@@ -308,21 +250,23 @@ function TabInventario({ items }) {
                     </span>
                   </td>
                   <td style={{ fontSize: 11, color: "var(--muted)" }}>{it.subtipo || "—"}</td>
+                  <td className="cell-med" title={it.capacidad}>{it.capacidad || "—"}</td>
+                  <td style={{ fontSize: 11, color: "var(--muted)" }}>{it.combustible || "—"}</td>
                   <td style={{ fontWeight: 500 }}>{it.ubicacion || "—"}</td>
-                  <td className="cell-modelo">{it.modelo || "—"}</td>
-                  <td className="cell-cap" title={it.capacidad}>{it.capacidad || "—"}</td>
+                  <td className="cell-long" title={it.modelo}>{it.modelo || "—"}</td>
                   <td style={{ color: "var(--muted)", fontSize: 11 }}>{it.fabricante || "—"}</td>
                   <td className="cell-num">{it.numero_serie || "—"}</td>
                   <td className="cell-num" style={{ textAlign: "center" }}>{it.cantidad ?? "—"}</td>
                   <td className="cell-num" style={{ textAlign: "center" }}>{it.metros != null ? `${it.metros}m` : "—"}</td>
-                  <td style={{ color: "var(--muted)", fontSize: 11 }}>{it.condicion || "—"}</td>
+                  <td style={{ fontSize: 11, color: "var(--muted)" }}>{it.condicion || "—"}</td>
                   <td>
                     <span className="badge-estado" style={{ background: estCol.bg, color: estCol.color, border: `1px solid ${estCol.border}` }}>
                       {it.estado || "—"}
                     </span>
                   </td>
                   <td style={{ fontSize: 11 }}>{it.terminal || "—"}</td>
-                  <td className="cell-comentarios" title={it.comentarios}>{it.comentarios || "—"}</td>
+                  <td className="cell-med" title={it.obs}>{it.obs || "—"}</td>
+                  <td className="cell-long" title={it.comentarios}>{it.comentarios || "—"}</td>
                   <td>
                     {it.foto_url
                       ? <a className="foto-link" href={it.foto_url} target="_blank" rel="noreferrer">Ver →</a>
@@ -368,20 +312,19 @@ function TabInventario({ items }) {
 
 // ─── TAB MOVIMIENTOS ──────────────────────────────────────────────────────────
 function TabMovimientos({ items, onMovimientoCreado }) {
-  const [movimientos, setMovimientos] = useState([]);
-  const [loadingMov, setLoadingMov]   = useState(true);
-  const [saving, setSaving]           = useState(false);
-  const [successMsg, setSuccessMsg]   = useState("");
-  const [errorMsg, setErrorMsg]       = useState("");
-  const [errorLoad, setErrorLoad]     = useState("");
-
-  const [filtFamilia, setFiltFamilia]     = useState("");
-  const [filtSubtipo, setFiltSubtipo]     = useState("");
-  const [filtBaseOrigen, setFiltBaseOrigen] = useState("");
-  const [itemId, setItemId]               = useState("");
-  const [cantidadMov, setCantidadMov]     = useState(1);
-  const [baseDestino, setBaseDestino]     = useState("");
-  const [motivo, setMotivo]               = useState("");
+  const [movimientos, setMovimientos]         = useState([]);
+  const [loadingMov, setLoadingMov]           = useState(true);
+  const [saving, setSaving]                   = useState(false);
+  const [successMsg, setSuccessMsg]           = useState("");
+  const [errorMsg, setErrorMsg]               = useState("");
+  const [errorLoad, setErrorLoad]             = useState("");
+  const [filtFamilia, setFiltFamilia]         = useState("");
+  const [filtSubtipo, setFiltSubtipo]         = useState("");
+  const [filtBaseOrigen, setFiltBaseOrigen]   = useState("");
+  const [itemId, setItemId]                   = useState("");
+  const [cantidadMov, setCantidadMov]         = useState(1);
+  const [baseDestino, setBaseDestino]         = useState("");
+  const [motivo, setMotivo]                   = useState("");
 
   useEffect(() => { loadMovimientos(); }, []);
 
@@ -402,27 +345,25 @@ function TabMovimientos({ items, onMovimientoCreado }) {
     }
   };
 
-  // Cascada: Familia → Subtipo → Base → Ítem
-  const itemsMovibles = items.filter(i => i.estado === "Disponible" || i.estado === "En uso");
-  const familiasCasc = [...new Set(itemsMovibles.map(i => i.familia).filter(Boolean))].sort();
-  const subtiposCasc = [...new Set(
+  const itemsMovibles   = items.filter(i => i.estado === "Disponible" || i.estado === "En uso");
+  const familiasCasc    = [...new Set(itemsMovibles.map(i => i.familia).filter(Boolean))].sort();
+  const subtiposCasc    = [...new Set(
     itemsMovibles.filter(i => !filtFamilia || i.familia === filtFamilia)
       .map(i => i.subtipo).filter(Boolean)
   )].sort();
-  const basesCasc = [...new Set(
+  const basesCasc       = [...new Set(
     itemsMovibles
       .filter(i => (!filtFamilia || i.familia === filtFamilia) && (!filtSubtipo || i.subtipo === filtSubtipo))
       .map(i => i.ubicacion).filter(Boolean)
   )].sort();
-  const itemsFiltrados = itemsMovibles.filter(i =>
+  const itemsFiltrados  = itemsMovibles.filter(i =>
     (!filtFamilia || i.familia === filtFamilia) &&
     (!filtSubtipo || i.subtipo === filtSubtipo) &&
     (!filtBaseOrigen || i.ubicacion === filtBaseOrigen)
   );
-
   const itemSeleccionado = items.find(i => i.id === itemId);
-  const basesDestino = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
-  const maxCantidad = itemSeleccionado
+  const basesDestino     = [...new Set(items.map(i => i.ubicacion).filter(Boolean))].sort();
+  const maxCantidad      = itemSeleccionado
     ? (itemSeleccionado.numero_serie ? 1 : (itemSeleccionado.cantidad || 1))
     : 1;
 
@@ -432,32 +373,23 @@ function TabMovimientos({ items, onMovimientoCreado }) {
   };
 
   const handleSubmit = async () => {
-    if (!itemId) { setErrorMsg("Seleccioná un ítem."); return; }
+    if (!itemId)      { setErrorMsg("Seleccioná un ítem."); return; }
     if (!baseDestino) { setErrorMsg("Seleccioná la base de destino."); return; }
     if (baseDestino === itemSeleccionado.ubicacion) { setErrorMsg("La base de destino no puede ser la misma que la de origen."); return; }
     if (cantidadMov < 1 || cantidadMov > maxCantidad) { setErrorMsg(`La cantidad debe ser entre 1 y ${maxCantidad}.`); return; }
 
-    const snapId       = itemId;
-    const snapOrigen   = itemSeleccionado.ubicacion;
-    const snapModelo   = itemSeleccionado.modelo;
-    const snapCantidad = cantidadMov;
-    const snapMotivo   = motivo;
+    const snapId = itemId, snapOrigen = itemSeleccionado.ubicacion,
+          snapModelo = itemSeleccionado.modelo, snapCantidad = cantidadMov, snapMotivo = motivo;
 
     setSaving(true); setErrorMsg(""); setSuccessMsg("");
-
     try {
-      const { error: errItem } = await supabase
-        .from("inventario_items")
-        .update({ ubicacion: baseDestino })
-        .eq("id", snapId);
-      if (errItem) throw errItem;
-
-      const { error: errMov } = await supabase.from("inventario_movimientos").insert({
+      const { error: e1 } = await supabase.from("inventario_items").update({ ubicacion: baseDestino }).eq("id", snapId);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from("inventario_movimientos").insert({
         item_id: snapId, base_origen: snapOrigen, base_destino: baseDestino,
         cantidad: snapCantidad, motivo: snapMotivo || null, usuario: "sistema",
       });
-      if (errMov) throw errMov;
-
+      if (e2) throw e2;
       setSuccessMsg(`✓ Movimiento registrado: ${snapModelo} → ${baseDestino}`);
       resetFiltros(); setMotivo("");
       await loadMovimientos();
@@ -508,18 +440,19 @@ function TabMovimientos({ items, onMovimientoCreado }) {
               <option value="">{filtBaseOrigen ? (itemsFiltrados.length === 0 ? "Sin ítems disponibles" : "Seleccioná ítem...") : "Primero elegí base"}</option>
               {itemsFiltrados.map(i => (
                 <option key={i.id} value={i.id}>
-                  #{i.item_numero}{i.numero_serie ? ` — Serie: ${i.numero_serie}` : ""} — {i.estado}
+                  #{i.item_numero}{i.numero_serie ? ` — Serie: ${i.numero_serie}` : ""} — {i.modelo?.substring(0, 30)} — {i.estado}
                 </option>
               ))}
             </select>
-            {filtBaseOrigen && itemsFiltrados.length === 0 && (
-              <span className="form-hint" style={{ color: "#991B1B" }}>No hay ítems disponibles con esos filtros.</span>
-            )}
+            {filtBaseOrigen && itemsFiltrados.length === 0 &&
+              <span className="form-hint" style={{ color: "#991B1B" }}>No hay ítems disponibles.</span>
+            }
           </div>
 
           {itemSeleccionado && (
             <div style={{ background: "#F0F4F8", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", fontSize: 11 }}>
               <div style={{ fontWeight: 700, color: "var(--navy)", marginBottom: 4 }}>{itemSeleccionado.modelo}</div>
+              <div style={{ color: "var(--muted)" }}>Familia: <strong style={{ color: "var(--navy)" }}>{itemSeleccionado.familia}</strong></div>
               <div style={{ color: "var(--muted)" }}>Base actual: <strong style={{ color: "var(--navy)" }}>{itemSeleccionado.ubicacion}</strong></div>
               <div style={{ color: "var(--muted)" }}>Estado: {itemSeleccionado.estado}</div>
               {itemSeleccionado.capacidad && <div style={{ color: "var(--muted)" }}>Capacidad: {itemSeleccionado.capacidad}</div>}
@@ -541,7 +474,7 @@ function TabMovimientos({ items, onMovimientoCreado }) {
             <label className="form-label">Cantidad</label>
             <input type="number" className="form-input" min={1} max={maxCantidad} value={cantidadMov}
               onChange={e => setCantidadMov(Number(e.target.value))}
-              disabled={itemSeleccionado?.numero_serie}
+              disabled={!!itemSeleccionado?.numero_serie}
             />
             {itemSeleccionado?.numero_serie
               ? <span className="form-hint">Ítem único — cantidad fija en 1</span>
@@ -592,7 +525,9 @@ function TabMovimientos({ items, onMovimientoCreado }) {
                     </td>
                     <td style={{ fontWeight: 500 }}>
                       {mov.inventario_items?.modelo || "—"}
-                      <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{mov.inventario_items?.familia} · {mov.inventario_items?.subtipo}</div>
+                      <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>
+                        {mov.inventario_items?.familia}{mov.inventario_items?.subtipo ? ` · ${mov.inventario_items.subtipo}` : ""}
+                      </div>
                     </td>
                     <td>
                       <div className="arrow-badge">
