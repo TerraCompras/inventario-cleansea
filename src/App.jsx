@@ -1306,7 +1306,85 @@ function TabMantenimiento({ items }) {
 }
 
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
-export default function App() {
+// ─── LOGIN PAGE ───────────────────────────────────────────────────────────────
+function LoginPage() {
+  const [email, setEmail]       = useState("");
+  const [pass, setPass]         = useState("");
+  const [loadingL, setLoadingL] = useState(false);
+  const [error, setError]       = useState("");
+
+  const handleLogin = async () => {
+    setLoadingL(true); setError("");
+    try {
+      const { error: e } = await supabase.auth.signInWithPassword({ email, password: pass });
+      if (e) setError("Credenciales incorrectas. Verificá tu email y contraseña.");
+    } catch {
+      setError("Error de conexión. Verificá tu red e intentá nuevamente.");
+    } finally {
+      setLoadingL(false);
+    }
+  };
+
+  const handleKey = (e) => { if (e.key === "Enter") handleLogin(); };
+
+  const loginCSS = `
+    .lw{min-height:100vh;display:flex;background:#0B1E1C;position:relative;overflow:hidden}
+    .lo{position:absolute;inset:0;z-index:1;background:linear-gradient(135deg,rgba(11,30,28,0.93) 0%,rgba(11,30,28,0.75) 60%,rgba(11,30,28,0.93) 100%)}
+    .ll{position:absolute;inset:0;z-index:0;background-image:linear-gradient(rgba(26,122,110,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(26,122,110,0.05) 1px,transparent 1px);background-size:60px 60px}
+    .ls{position:relative;z-index:2;display:flex;width:100%}
+    .lleft{flex:1;display:flex;flex-direction:column;justify-content:center;padding:80px 60px;border-right:1px solid rgba(26,122,110,0.2)}
+    .ley{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:16px}
+    .ltitle{font-size:44px;font-weight:900;color:#fff;line-height:0.95;letter-spacing:-2px}
+    .ltitle span{color:#22998A;display:block}
+    .lline{width:48px;height:3px;background:#1A7A6E;margin:18px 0}
+    .lsub{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.7;max-width:300px;font-style:italic}
+    .lright{width:420px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:60px 48px}
+    .lcard{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(26,122,110,0.25);border-radius:16px;padding:36px;backdrop-filter:blur(20px)}
+    .lct{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px}
+    .lcs{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:1px;margin-bottom:24px;text-transform:uppercase}
+    .lfg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+    .lfg label{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;font-weight:600}
+    .lfg input{border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 13px;font-size:13px;font-family:'Montserrat',sans-serif;color:#fff;background:rgba(255,255,255,0.06);outline:none;transition:border-color .15s}
+    .lfg input::placeholder{color:rgba(255,255,255,0.2)}
+    .lfg input:focus{border-color:#22998A}
+    .lbtn{width:100%;padding:11px;margin-top:8px;background:#1A7A6E;color:#fff;border:none;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
+    .lbtn:hover{background:#22998A}
+    .lbtn:disabled{opacity:.5;cursor:not-allowed}
+    .lerr{background:rgba(239,68,68,0.12);color:#FCA5A5;border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:10px 13px;font-size:12px;margin-bottom:12px}
+    .lfoot{text-align:center;font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);margin-top:16px;letter-spacing:1px}
+    @media(max-width:768px){.ls{flex-direction:column}.lleft{padding:48px 32px;border-right:none;border-bottom:1px solid rgba(26,122,110,0.2)}.lright{width:100%;padding:32px 24px}.ltitle{font-size:32px}}
+  `;
+
+  return (
+    <>
+      <style>{loginCSS}</style>
+      <div className="lw">
+        <div className="ll" /><div className="lo" />
+        <div className="ls">
+          <div className="lleft">
+            <div className="ley">Inventario de equipamiento</div>
+            <div className="ltitle">INVENTARIO<span>CLEAN SEA</span></div>
+            <div className="lline" />
+            <div className="lsub">Control de stock, movimientos y remitos de equipamiento de respuesta a derrames.</div>
+          </div>
+          <div className="lright">
+            <div className="lcard">
+              <div className="lct">Acceso al sistema</div>
+              <div className="lcs">Solo personal autorizado</div>
+              {error && <div className="lerr">{error}</div>}
+              <div className="lfg"><label>Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} placeholder="usuario@cleansea.com.ar" autoFocus /></div>
+              <div className="lfg"><label>Contraseña</label><input type="password" value={pass} onChange={e => setPass(e.target.value)} onKeyDown={handleKey} placeholder="••••••••" /></div>
+              <button className="lbtn" onClick={handleLogin} disabled={loadingL || !email || !pass}>{loadingL ? "Ingresando..." : "Ingresar →"}</button>
+              <div className="lfoot">Clean Sea · Inventario · Confidencial</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function InventarioApp() {
   const [items, setItems]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -1358,7 +1436,7 @@ export default function App() {
             <div className="header-sub">Equipamiento de respuesta a derrames</div>
           </div>
         </div>
-        <button className="back-btn" onClick={() => window.open(PORTAL_URL, "_self")}>← Volver al portal</button>
+        <button className="back-btn" onClick={() => window.location.href = PORTAL_URL}>← Volver al portal</button>
       </header>
 
       <div className="hero">
@@ -1389,4 +1467,29 @@ export default function App() {
       {tab === "mantenimiento" && <TabMantenimiento items={items} />}
     </>
   );
+}
+
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) return (
+    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#0B1E1C" }}>
+      <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:"rgba(255,255,255,0.3)", letterSpacing:3, textTransform:"uppercase" }}>Cargando...</div>
+    </div>
+  );
+
+  if (!session) return <LoginPage />;
+  return <InventarioApp />;
 }
