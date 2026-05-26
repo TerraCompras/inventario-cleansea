@@ -306,9 +306,11 @@ tr:hover td { background: #F8FAFC; }
 @media (max-width: 768px) {
   .mant-kpis-grid { grid-template-columns: repeat(2,1fr); }
   /* Header compacto */
-  .header { padding: 0 14px; height: 54px; }
-  .header-main { font-size: 11px; }
-  .back-btn { font-size: 9px; padding: 4px 8px; }
+  .header { padding: 0 12px; height: 52px; }
+  .header-main { font-size: 11px; letter-spacing: 0.5px; }
+  .header-sub { display: none; }
+  .header-logo { width: 28px; height: 28px; }
+  .back-btn { font-size: 9px; padding: 4px 8px; white-space: nowrap; }
 
   /* Mov grid — forzar 1 columna */
   .mov-grid { grid-template-columns: 1fr !important; }
