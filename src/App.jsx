@@ -299,6 +299,51 @@ tr:hover td { background: #F8FAFC; }
   .hero-title { font-size: 18px; }
   table { min-width: 700px; }
 }
+
+/* ── FIXES MOBILE ADICIONALES ── */
+@media (max-width: 768px) {
+  /* Header compacto */
+  .header { padding: 0 14px; height: 54px; }
+  .header-main { font-size: 11px; }
+  .back-btn { font-size: 9px; padding: 4px 8px; }
+
+  /* Mov grid — forzar 1 columna */
+  .mov-grid { grid-template-columns: 1fr !important; }
+  .mov-content { padding: 16px 14px 60px; }
+  .form-card { padding: 16px; }
+
+  /* Historial y remitos */
+  .hist-content { padding: 16px 14px 40px; }
+  .rem-content { padding: 16px 14px 40px; }
+  .rem-kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Remito imprimible */
+  .remito-grid { grid-template-columns: 1fr; }
+  .remito-firmas { grid-template-columns: 1fr; gap: 30px; }
+
+  /* Modales */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal { border-radius: 16px 16px 0 0; max-height: 92vh; }
+  .modal-body { padding: 16px; grid-template-columns: 1fr; }
+  .modal-footer { padding: 12px 16px; }
+
+  /* Paginacion */
+  .pagination { padding: 10px 14px; flex-direction: column; gap: 8px; align-items: flex-start; }
+  .page-btns { flex-wrap: wrap; }
+  .page-btn { padding: 4px 10px; font-size: 10px; }
+
+  /* Tabla overflow */
+  .table-outer { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .hist-table-outer { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* content-top */
+  .content-top { padding: 16px 14px; }
+
+  /* Toolbar */
+  .toolbar { padding: 12px; }
+  .toolbar-right { width: 100%; justify-content: space-between; }
+}
+
 `;
 
 // ─── MODAL ITEM ───────────────────────────────────────────────────────────────
