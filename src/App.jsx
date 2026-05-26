@@ -300,8 +300,11 @@ tr:hover td { background: #F8FAFC; }
   table { min-width: 700px; }
 }
 
+.mant-kpis-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
+
 /* ── FIXES MOBILE ADICIONALES ── */
 @media (max-width: 768px) {
+  .mant-kpis-grid { grid-template-columns: repeat(2,1fr); }
   /* Header compacto */
   .header { padding: 0 14px; height: 54px; }
   .header-main { font-size: 11px; }
@@ -913,7 +916,7 @@ function TabMovimientos({ items, onMovimientoCreado, usuario }) {
     <>
     <div className="mov-content">
       <div className="section-label">Movimientos de equipamiento</div>
-      <div style={{ display:"grid", gridTemplateColumns:"420px 1fr", gap:24, alignItems:"start" }}>
+      <div className="mov-grid">
 
         {/* PANEL IZQUIERDO */}
         <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
@@ -1321,7 +1324,7 @@ function TabMantenimiento({ items }) {
 
   return (
     <div className="hist-content">
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:32 }}>
+      <div className="mant-kpis-grid">
         <div style={{ background:"#FEE2E2", border:"1px solid #FECACA", borderRadius:12, padding:"16px 20px" }}>
           <div style={{ fontFamily:"var(--mono)", fontSize:9, letterSpacing:1.5, color:"#991B1B", textTransform:"uppercase", marginBottom:8 }}>Vencidos</div>
           <div style={{ fontFamily:"var(--mono)", fontSize:32, fontWeight:700, color:"#EF4444" }}>{vencidos.length}</div>
