@@ -1383,6 +1383,12 @@ function LoginPage() {
     .ll{position:absolute;inset:0;z-index:0;background-image:linear-gradient(rgba(26,122,110,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(26,122,110,0.05) 1px,transparent 1px);background-size:60px 60px}
     .ls{position:relative;z-index:2;display:flex;width:100%}
     .lleft{flex:1;display:flex;flex-direction:column;justify-content:center;padding:80px 60px;border-right:1px solid rgba(26,122,110,0.2)}
+    .lintegraWrap{margin-bottom:8px}
+    .lintegraImg{height:340px;width:auto;object-fit:contain;opacity:0.95}
+    .ldivider{width:100%;height:1px;background:rgba(255,255,255,0.1);margin:8px 0 20px}
+    .lcompany{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+    .lcompanyLogo{width:48px;height:48px;border-radius:50%;object-fit:contain;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05)}
+    .lcompanyName{font-size:20px;font-weight:800;color:#fff;letter-spacing:0.5px}
     .ley{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:16px}
     .ltitle{font-size:44px;font-weight:900;color:#fff;line-height:0.95;letter-spacing:-2px}
     .ltitle span{color:#22998A;display:block}
@@ -1412,8 +1418,14 @@ function LoginPage() {
         <div className="ll" /><div className="lo" />
         <div className="ls">
           <div className="lleft">
-            <div className="ley">Inventario de equipamiento</div>
-            <div className="ltitle">INVENTARIO<span>CLEAN SEA</span></div>
+            <div className="lintegraWrap">
+              <img src="/integralogo.png" alt="INTEGRA" className="lintegraImg" />
+            </div>
+            <div className="ldivider" />
+            <div className="lcompany">
+              <img src="/CS.png" alt="Clean Sea" className="lcompanyLogo" />
+              <div className="lcompanyName">Clean Sea | Inventario</div>
+            </div>
             <div className="lline" />
             <div className="lsub">Control de stock, movimientos y remitos de equipamiento de respuesta a derrames.</div>
           </div>
