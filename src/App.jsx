@@ -1383,8 +1383,8 @@ function LoginPage() {
     .ll{position:absolute;inset:0;z-index:0;background-image:linear-gradient(rgba(26,122,110,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(26,122,110,0.05) 1px,transparent 1px);background-size:60px 60px}
     .ls{position:relative;z-index:2;display:flex;width:100%}
     .lleft{flex:1;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:40px 60px;border-right:1px solid rgba(26,122,110,0.2)}
-    .lintegraWrap{margin-bottom:8px}
-    .lintegraImg{height:340px;width:auto;object-fit:contain;opacity:0.95}
+    .lintegraWrap{margin-bottom:8px;width:100%}
+    .lintegraImg{width:100%;max-width:480px;height:auto;object-fit:contain;opacity:0.95}
     .ldivider{width:100%;height:1px;background:rgba(255,255,255,0.1);margin:8px 0 20px}
     .lcompany{display:flex;align-items:center;gap:14px;margin-bottom:4px}
     .lcompanyLogo{width:48px;height:48px;border-radius:50%;object-fit:contain;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05)}
